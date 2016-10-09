@@ -1,3 +1,12 @@
 *.rar
+*.bin
+*.lst
+*.bim
+*.gas
+*.obj
+*.map
 z_tools
+source/bootpack.nas
+source/bootpack.hrb
 source/vOS.img
+source/vOS.sys
