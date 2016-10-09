@@ -64,7 +64,7 @@ void HariMain(void)
     int mx, my;
 
 	init_palette();
-	init_screen(binfo->vram, binfo->scrnx, binfo->scrny);
+	init_screen8(binfo->vram, binfo->scrnx, binfo->scrny);
 
     mx = (binfo->scrnx-16)/2;
     my = (binfo->scrny-28-16)/2;

@@ -6,9 +6,12 @@
 *.obj
 *.map
 .idea
+projects
 z_tools
 main.cpp
 CMakeLists.txt
+source/dsctbl.nas
+source/graphic.nas
 source/bootpack.nas
 source/bootpack.hrb
 source/vOS.img
