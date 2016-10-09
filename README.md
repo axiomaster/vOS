@@ -33,3 +33,8 @@ for(i=0;i<0xffff;i++){
 }
 // p[i], *(p+i), *(i+p), i[p] 完全等效
 ```
+
+## day5
+字体文件：hankaku.txt -> hankaku.bin
+
+makefont.exe: 将txt读入，写成bin文件 16*256=4096字节， 每个字符宽度为8，高度为16，占16byte
