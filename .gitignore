@@ -5,7 +5,10 @@
 *.gas
 *.obj
 *.map
+.idea
 z_tools
+main.cpp
+CMakeLists.txt
 source/bootpack.nas
 source/bootpack.hrb
 source/vOS.img
