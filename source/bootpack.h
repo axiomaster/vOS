@@ -11,13 +11,13 @@ struct BOOTINFO {
 
 // naskfunc.nas
 void io_hlt(void);
-void io_cli(void);
-void io_sti(void);
+void io_cli(void); //中断标记置为0
+void io_sti(void); //中断标记置为1
 int io_in8(int port);
 void io_out8(int port, int data);
-int io_load_eflags(void);
-void io_store_eflags(int eflags);
-void load_gdtr(int limit, int addr);
+int io_load_eflags(void); //读取eflags
+void io_store_eflags(int eflags); //设置eflags
+void load_gdtr(int limit, int addr); //为gdtr寄存器赋值
 void load_idtr(int limit, int addr);
 void asm_inthandler21(void);
 void asm_inthandler27(void);
@@ -29,7 +29,7 @@ void set_palette(int start, int end, unsigned char *rgb);
 void boxfill8(unsigned char *vram, int xsize, unsigned char c, int x0, int y0, int x1, int y1);
 void init_screen8(char *vram, int x, int y);
 void putfont8(char *vram, int xsize, int x, int y, char c, char *font);
-void putfonts8_asc(char *vram, int xsize, int x, int y, char c, unsigned char *s);
+void putfonts8_asc(char *vram, int xsize, int x, int y, char c, unsigned char *s); //字符串
 void init_mouse_cursor8(char *mouse, char bc);
 void putblock8_8(char *vram, int vxsize, int pxsize,
                  int pysize, int px0, int py0, char *buf, int bxsize);
@@ -51,13 +51,13 @@ void putblock8_8(char *vram, int vxsize, int pxsize,
 #define COL8_848484		15
 
 // dsctbl.c
-struct SEGMENT_DESCRIPTOR {
-    short limit_low, base_low;
-    char base_mid, access_right;
-    char limit_high, base_high;
+struct SEGMENT_DESCRIPTOR {       //共8个字节
+    short limit_low, base_low;    //2,2
+    char base_mid, access_right;  //1,1
+    char limit_high, base_high;   //1,1
 };
 
-struct GATE_DESCRIPTOR {
+struct GATE_DESCRIPTOR {          //8个字节
     short offset_low, selector;
     char dw_count, access_right;
     short offset_high;
@@ -72,17 +72,17 @@ void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar);
 #define LIMIT_GDT		0x0000ffff
 #define ADR_BOTPAK		0x00280000
 #define LIMIT_BOTPAK	0x0007ffff
-#define AR_DATA32_RW	0x4092
-#define AR_CODE32_ER	0x409a
+#define AR_DATA32_RW	0x4092 //系统专用 可读写，不可执行
+#define AR_CODE32_ER	0x409a //系统专用 可执行，可读，不可写
 #define AR_INTGATE32	0x008e
 
 // int.c
 void init_pic(void);
-void inthandler21(int *esp);
+void inthandler21(int *esp); //键盘 IRQ1  对应 0x21
 void inthandler27(int *esp);
-void inthandler2c(int *esp);
-#define PIC0_ICW1		0x0020
-#define PIC0_OCW2		0x0020
+void inthandler2c(int *esp); //鼠标 IRQ12 对应 0x2c
+#define PIC0_ICW1		0x0020 //0x20 - 0x2f 对应 IRQ0 - IRQ15 外部中断
+#define PIC0_OCW2		0x0020 //0x00 - 0x1f 对应CPU异常
 #define PIC0_IMR		0x0021
 #define PIC0_ICW2		0x0021
 #define PIC0_ICW3		0x0021

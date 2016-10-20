@@ -11,8 +11,8 @@
 		GLOBAL	_io_out8, _io_out16, _io_out32
 		GLOBAL	_io_load_eflags, _io_store_eflags
 		GLOBAL	_load_gdtr, _load_idtr
-		GLOBAL	_asm_inthandler21, _asm_inthandler27, _asm_inthandler2c
-		EXTERN	_inthandler21, _inthandler27, _inthandler2c		
+		GLOBAL	_asm_inthandler21, _asm_inthandler27, _asm_inthandler2c ;中断程序,调用c语言中断处理程序
+		EXTERN	_inthandler21, _inthandler27, _inthandler2c		        ;中断处理程序
 
 [SECTION .text]
 
@@ -23,7 +23,7 @@ _io_hlt:	; void io_hlt(void);
 _io_cli:	; void io_cli(void);
 		CLI
 		RET
-
+ 
 _io_sti:	; void io_sti(void);
 		STI
 		RET
@@ -69,14 +69,14 @@ _io_out32:	; void io_out32(int port, int data);
 		RET
 
 _io_load_eflags:	; int io_load_eflags(void);
-		PUSHFD		; PUSH EFLAGS という意味
+		PUSHFD		; PUSH EFLAGS double words
 		POP		EAX
 		RET
 
 _io_store_eflags:	; void io_store_eflags(int eflags);
 		MOV		EAX,[ESP+4]
 		PUSH	EAX
-		POPFD		; POP EFLAGS という意味
+		POPFD		; POP EFLAGS double words
 		RET
 
 _load_gdtr:		; void load_gdtr(int limit, int addr);

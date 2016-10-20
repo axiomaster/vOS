@@ -52,7 +52,7 @@ retry:
 		JAE		error			; SI>=5, 跳转到error
 		MOV		AH,0x00
 		MOV		DL,0x00			; A驱动器
-		INT		0x13			; 重置驱动器
+		INT		0x13			; 重置驱动器, 磁盘bios
 		JMP		retry
 next:
 		MOV		AX,ES
@@ -71,7 +71,7 @@ next:
 		JB		readloop
 
 		MOV		[0x0ff0],CH
-		JMP		0xc200			; 跳转到程序位置开始执行	
+		JMP		0xc200			; 跳转到程序位置开始执行	磁盘4200H处，对应内存 0x8000+0x4200 = 0xc200处
 
 error:
 		MOV		SI,msg			;

@@ -3,19 +3,19 @@
 //
 #include "bootpack.h"
 
-void init_gdtidt(void)
+void init_gdtidt(void) //gdt表 idt表
 {
-    struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *) 0x00270000;
-    struct GATE_DESCRIPTOR    *idt = (struct GATE_DESCRIPTOR    *) 0x0026f800;
+    struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *) 0x00270000; //270000H - 27ffff
+    struct GATE_DESCRIPTOR    *idt = (struct GATE_DESCRIPTOR    *) 0x0026f800; //
     int i;
 
-    /* GDTの初期化 */
+    /* GDTの初期化 */ //2^13 = 8192   8192*8 = 64k
     for (i = 0; i < 8192; i++) {
-        set_segmdesc(gdt + i, 0, 0, 0);
+        set_segmdesc(gdt + i, 0, 0, 0); //每次8个字节递增
     }
-    set_segmdesc(gdt + 1, 0xffffffff, 0x00000000, 0x4092);
-    set_segmdesc(gdt + 2, 0x0007ffff, 0x00280000, 0x409a);
-    load_gdtr(0xffff, 0x00270000);
+    set_segmdesc(gdt + 1, 0xffffffff, 0x00000000, 0x4092); //段号1 -> 全部4GB
+    set_segmdesc(gdt + 2, 0x0007ffff, 0x00280000, 0x409a); //段号2 -> 512KB 对应bootpack.hrb
+    load_gdtr(0xffff, 0x00270000); //gdtr寄存器：48位寄存器
 
     /* IDTの初期化 */
     for (i = 0; i < 256; i++) {
@@ -35,7 +35,7 @@ void init_gdtidt(void)
 void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, int ar)
 {
     if (limit > 0xfffff) {
-        ar |= 0x8000; /* G_bit = 1 */
+        ar |= 0x8000; /* G_bit = 1 */ //limit单位 byte -> 4KB
         limit /= 0x1000;
     }
     sd->limit_low    = limit & 0xffff;

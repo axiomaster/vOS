@@ -6,12 +6,16 @@
 
 ## day1-2
 汇编按字节写入启动磁盘映像文件
-```
+``` asm
 DB ; data byte, 往文件写入一个字节
 ```
+> 0x7c00 - 0x7dff ; 启动区内容的装载地址
+> 
+> INT 10h ; bios显示中断
+
 ## day1-3
 使用汇编代码写入img
-```
+``` asm
 DB ; 可以写入字符串
 DW ; data word
 DD ; data double-word

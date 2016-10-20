@@ -31,16 +31,16 @@ void init_palette(void)
 void set_palette(int start, int end, unsigned char *rgb)
 {
     int i, eflags;
-    eflags = io_load_eflags();
+    eflags = io_load_eflags(); //存储eflags标志
     io_cli();
     io_out8(0x03c8, start);
     for(i = start;i<=end;i++){
-        io_out8(0x03c9, rgb[0] / 4);
+        io_out8(0x03c9, rgb[0] / 4); //写入调色板
         io_out8(0x03c9, rgb[1] / 4);
         io_out8(0x03c9, rgb[2] / 4);
         rgb += 3;
     }
-    io_store_eflags(eflags);
+    io_store_eflags(eflags);  //恢复eflags标志
     return;
 }
 

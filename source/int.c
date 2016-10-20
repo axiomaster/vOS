@@ -23,7 +23,7 @@ void init_pic(void)
 
 #define PORT_KEYDAT		0x0060
 
-void inthandler21(int *esp)
+void inthandler21(int *esp) //对应键盘中断
 {
 	struct BOOTINFO *binfo = (struct BOOTINFO *) ADR_BOOTINFO;
 	unsigned char data, s[4];
