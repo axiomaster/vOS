@@ -25,10 +25,10 @@ VRAM    EQU     0x0ff8
 ; 实模式 -> 保护模式
         MOV     AL,0xff
         OUT     0x21,AL
-        NOP
+        NOP						; CPU休息一个时钟长，防止连续out指令出错
         OUT     0xa1,AL
-        CLI
-
+        CLI						; 禁止CPU级别的中断
+; 设定A20 GATE
 		CALL	waitkbdout
 		MOV		AL,0xd1
 		OUT		0x64,AL
@@ -39,10 +39,10 @@ VRAM    EQU     0x0ff8
 
 [INSTRSET "i486p"]				; 486の命令まで使いたいという記述
 
-		LGDT	[GDTR0]			; 暫定GDTを設定
+		LGDT	[GDTR0]			; 设定临时GDT
 		MOV		EAX,CR0
 		AND		EAX,0x7fffffff	; bit31を0にする（ページング禁止のため）
-		OR		EAX,0x00000001	; bit0を1にする（プロテクトモード移行のため）
+		OR		EAX,0x00000001	; bit0置1 为了切换到保护模式
 		MOV		CR0,EAX
 		JMP		pipelineflush
 pipelineflush:
@@ -53,8 +53,8 @@ pipelineflush:
 		MOV		GS,AX
 		MOV		SS,AX
 
-; bootpackの転送
-
+; bootpack的转送
+; 从bootpack的地址开始的512k内容复制进0x28000000
 		MOV		ESI,bootpack	; 転送元
 		MOV		EDI,BOTPAK		; 転送先
 		MOV		ECX,512*1024/4
@@ -80,9 +80,9 @@ pipelineflush:
 		CALL	memcpy
 
 ; asmheadでしなければいけないことは全部し終わったので、
-;	あとはbootpackに任せる
+;	之后交由bootpack来完成
 
-; bootpackの起動
+; bootpack启动
 
 		MOV		EBX,BOTPAK
 		MOV		ECX,[EBX+16]
