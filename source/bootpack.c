@@ -18,6 +18,7 @@ void HariMain(void)
     io_out8(PIC1_IMR, 0xef);
 
     init_keyboard();
+    enable_mouse(&mdec);
 
 	init_palette();
 	init_screen8(binfo->vram, binfo->scrnx, binfo->scrny);
@@ -30,7 +31,9 @@ void HariMain(void)
     sprintf(s, "(%d, %d)", mx, my);
     putfonts8_asc(binfo->vram, binfo->scrnx, 16, 64, COL8_FFFFFF, s);
 
-    enable_mouse(&mdec);
+    i= memtest(0x00400000, 0xbfffffff)/(1024*1024);
+    sprintf(s, "memory %dMB", i);
+    putfonts8_asc(binfo->vram, binfo->scrnx, 0, 32, COL8_FFFFFF, s);
 
     for(;;){
         io_cli();
@@ -77,4 +80,57 @@ void HariMain(void)
             }
         }
     }
+}
+
+#define EFLAGS_AC_BIT       0x00040000
+#define CR0_CACHE_DISABLE   0x00600000
+
+unsigned int memtest(unsigned int start, unsigned int end)
+{
+    char flg486 = 0;
+    unsigned int eflg, cr0, i;
+
+    eflg = io_load_eflags();
+    eflg |= EFLAGS_AC_BIT;
+    io_store_eflags(eflg);
+    if((eflg & EFLAGS_AC_BIT)!=0){
+        flg486 = 1;
+    }
+    eflg &= ~EFLAGS_AC_BIT;
+    io_store_eflags(eflg);
+
+    if(flg486!=0){
+        cr0 = load_cr0();
+        cr0 |= CR0_CACHE_DISABLE; //禁止缓存
+        store_cr0(cr0);
+    }
+    i= memtest_sub(start, end);
+    if(flg486 != 0){
+        cr0 = load_cr0();
+        cr0 &= ~CR0_CACHE_DISABLE;
+        store_cr0(cr0);
+    }
+    return i;
+}
+
+unsigned int memtest_sub(unsigned int start, unsigned int end)
+{
+    unsigned int i, *p, old, pat0 = 0xaa55aa55, pat1 = 0x55aa55aa;
+    for(i = start;i<=end;i+=0x1000){ //每次递增4KB
+        p = (unsigned int *)(i+0xffc); //只检查4KB最后4个字节
+        old = *p;
+        *p = pat0;
+        *p ^= 0xffffffff;
+        if(*p != pat1){
+not_memory:
+            *p = old;
+            break;
+        }
+        *p ^= 0xffffffff;
+        if(*p != pat0){
+            goto not_memory;
+        }
+        *p = old;
+    }
+    return i;
 }

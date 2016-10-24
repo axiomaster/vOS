@@ -20,6 +20,8 @@ int io_load_eflags(void); //读取eflags
 void io_store_eflags(int eflags); //设置eflags
 void load_gdtr(int limit, int addr); //为gdtr寄存器赋值
 void load_idtr(int limit, int addr);
+int load_cr0(void);
+void store_cr0(int cr0);
 void asm_inthandler21(void);
 void asm_inthandler27(void);
 void asm_inthandler2c(void);
