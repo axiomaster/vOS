@@ -93,9 +93,8 @@ struct KEYBUF{
     int next_r, next_w, len;
 };
 void init_pic(void);
-void inthandler21(int *esp); //键盘 IRQ1  对应 0x21
+
 void inthandler27(int *esp);
-void inthandler2c(int *esp); //鼠标 IRQ12 对应 0x2c
 #define PIC0_ICW1		0x0020 //0x20 - 0x2f 对应 IRQ0 - IRQ15 外部中断
 #define PIC0_OCW2		0x0020 //0x00 - 0x1f 对应CPU异常
 #define PIC0_IMR		0x0021
@@ -108,4 +107,24 @@ void inthandler2c(int *esp); //鼠标 IRQ12 对应 0x2c
 #define PIC1_ICW2		0x00a1
 #define PIC1_ICW3		0x00a1
 #define PIC1_ICW4		0x00a1
+
+//keyboard.c
+void inthandler21(int *esp); //键盘 IRQ1  对应 0x21
+void wait_KBC_sendready(void);
+void init_keyboard(void);
+extern struct FIFO8 keyfifo;
+#define PORT_KEYDAT		0x0060
+#define PORT_KEYCMD     0x0064
+
+//mouse.c
+struct MOUSE_DEC{
+    unsigned char buf[3]; //鼠标中断产生3字节数据
+    unsigned char phase;  //中断数据读取状态
+    int x, y, btn;
+};
+void inthandler2c(int *esp); //鼠标 IRQ12 对应 0x2c
+void enable_mouse(struct MOUSE_DEC *mdec);
+int mouse_decode(struct MOUSE_DEC *mdec, unsigned char dat);
+extern struct FIFO8 mousefifo;
+
 
