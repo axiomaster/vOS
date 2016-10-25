@@ -37,6 +37,7 @@ void HariMain(void)
 	sht_mouse = sheet_alloc(shtctl);
 	buf_back = (unsigned char *)memman_alloc_4k(memman, binfo->scrnx*binfo->scrny);
 	sheet_setbuf(sht_back, buf_back, binfo->scrnx, binfo->scrny, -1);
+	sheet_setbuf(sht_mouse, buf_mouse, 16, 16, 99);
 	//在背景图层上绘制底边栏
 	init_screen8(buf_back, binfo->scrnx, binfo->scrny); 
 	init_mouse_cursor8(buf_mouse, 99);
@@ -48,7 +49,7 @@ void HariMain(void)
 	sheet_updown(shtctl, sht_mouse, 1);
 	//背景图层上绘制文字
 	sprintf(s, "(%d, %d)", mx, my);
-	putfonts8_asc(buf_back, binfo->scrnx, 16, 64, COL8_FFFFFF, s);
+	putfonts8_asc(buf_back, binfo->scrnx, 0, 0, COL8_FFFFFF, s);
 
     //putblock8_8(binfo->vram, binfo->scrnx, 16, 16, mx, my, mcursor, 16);
 	sprintf(s, "memory %dMB   free : %dKB",
@@ -66,8 +67,9 @@ void HariMain(void)
                 io_sti();
                 sprintf(s, "%02X", i);
                 boxfill8(buf_back, binfo->scrnx, COL8_008484, 0, 16, 15, 31);
-                putfonts8_asc(binfo->vram, binfo->scrnx, 0, 16, COL8_FFFFFF, s);
-            }else{
+                putfonts8_asc(buf_back, binfo->scrnx, 0, 16, COL8_FFFFFF, s);
+				sheet_refresh(shtctl);
+            }else if (fifo8_status(&mousefifo) != 0) {
                 i = fifo8_get(&mousefifo);
                 io_sti();
                 if(mouse_decode(&mdec, i)!=0){
@@ -85,7 +87,7 @@ void HariMain(void)
                     boxfill8(buf_back, binfo->scrnx, COL8_008484, 32, 16, 32+15*8-1, 31);
                     putfonts8_asc(buf_back, binfo->scrnx, 32, 16, COL8_FFFFFF, s);
 
-                    boxfill8(buf_back, binfo->scrnx, COL8_008484, mx, my, mx+15, my+15);
+                    //boxfill8(buf_back, binfo->scrnx, COL8_008484, mx, my, mx+15, my+15);
                     mx += mdec.x;
                     my += mdec.y;
                     if(mx<0) mx = 0;
