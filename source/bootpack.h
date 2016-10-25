@@ -152,3 +152,32 @@ unsigned int memman_alloc(struct MEMMAN *man, unsigned int size);
 int memman_free(struct MEMMAN *man, unsigned int addr, unsigned int size);
 unsigned int memman_alloc_4k(struct MEMMAN *man, unsigned int size);
 int memman_free_4k(struct MEMMAN *man, unsigned int addr, unsigned int size);
+
+// sheet.c
+#define MAX_SHEETS 256
+struct SHEET {
+	unsigned char *buf; //地址
+	int bxsize, bysize, vx0, vy0, col_inv;
+	int height;//层高
+	int flags; //是否使用
+};
+
+struct SHTCTL //管理图层
+{
+	unsigned char *vram;
+	int xsize, ysize, top;
+	struct SHEET *sheets[MAX_SHEETS];
+	struct SHEET sheets0[MAX_SHEETS];
+};
+
+struct SHTCTL *shtctl_init(struct MEMMAN *memman, unsigned char *vram, int xsize, int ysize);
+struct SHEET *sheet_alloc(struct SHTCTL *ctl);
+//设置缓冲区大小和透明色
+void sheet_setbuf(struct SHEET *sht, unsigned char *buf, int xsize, int ysize, int col_inv); 
+// 图层上下移动
+void sheet_updown(struct SHTCTL *ctl, struct SHEET *sht, int height); 
+// 刷新
+void sheet_refresh(struct SHTCTL *ctl);
+// 左右移动
+void sheet_slide(struct SHTCTL *ctl, struct SHEET *sht, int vx0, int vy0);
+void sheet_free(struct SHTCTL *ctl, struct SHEET *sht);
