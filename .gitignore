@@ -5,7 +5,13 @@
 *.gas
 *.obj
 *.map
+*.sln
+*.vcxproj
+*.filters
+*.db
+*.opendb
 .idea
+.vs
 projects
 z_tools
 main.cpp
