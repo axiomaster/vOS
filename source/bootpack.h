@@ -185,14 +185,18 @@ void sheet_free(struct SHEET *sht);
 #define MAX_TIMER 500
 struct TIMER
 {
-	unsigned int timeout, flags;
+	unsigned int timeout; //未来的某个时刻
+	unsigned int flags;
 	struct FIFO8 *fifo;
 	unsigned char data;
 };
 struct TIMERCTL
 {
 	unsigned int count;
-	struct TIMER timer[MAX_TIMER];
+	unsigned int next; //最近的有定时器 预约 的时刻
+	unsigned int using;
+	struct TIMER *timers[MAX_TIMER];
+	struct TIMER timers0[MAX_TIMER]; //定时器按顺序排列
 };
 extern struct TIMERCTL timerctl;
 void init_pit(void);
