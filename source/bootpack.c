@@ -21,14 +21,13 @@ void HariMain(void)
 	io_sti();
 	fifo8_init(&keyfifo, 32, keybuf);
 	fifo8_init(&mousefifo, 128, mousebuf);
-
 	//计时器初始化
 	init_pit();
 	io_out8(PIC0_IMR, 0xf8); //0xf9 -> 0xf8
 	io_out8(PIC1_IMR, 0xef);
 
 	fifo8_init(&timerfifo, 8, timerbuf);
-	settimer(1000, &timerfifo, 1);
+	settimer(300, &timerfifo, 1);
 
 	init_keyboard();
 	enable_mouse(&mdec);
@@ -47,7 +46,7 @@ void HariMain(void)
 	sht_win = sheet_alloc(shtctl);
 	buf_back = (unsigned char *)memman_alloc_4k(memman, binfo->scrnx*binfo->scrny);
 	//窗口
-	buf_win = (unsigned char *)memman_alloc_4k(memman, 160 * 68);
+	buf_win = (unsigned char *)memman_alloc_4k(memman, 160 * 52);
 	sheet_setbuf(sht_back, buf_back, binfo->scrnx, binfo->scrny, -1);
 	sheet_setbuf(sht_mouse, buf_mouse, 16, 16, 99);
 	sheet_setbuf(sht_win, buf_win, 160, 52, -1);
@@ -56,14 +55,10 @@ void HariMain(void)
 	init_mouse_cursor8(buf_mouse, 99);
 	// 窗口上绘制
 	make_window8(buf_win, 160, 52, "counter");
-	//putfonts8_asc(buf_win, 160, 20, 32, COL8_000000, "Welcome to vOS!");
-	//putfonts8_asc(buf_win, 160, 24, 44, COL8_000000, "  vOS!");
-
 	sheet_slide(sht_back, 0, 0);
 	mx = (binfo->scrnx - 16) / 2;
 	my = (binfo->scrny - 28 - 16) / 2;
 	sheet_slide(sht_mouse, mx, my);
-
 	sheet_slide(sht_win, 80, 72);
 
 	sheet_updown(sht_back, 0);
@@ -89,7 +84,7 @@ void HariMain(void)
 
 		io_cli();
 		if (fifo8_status(&keyfifo) + fifo8_status(&mousefifo) + fifo8_status(&timerfifo) == 0) {
-			io_stihlt();
+			io_sti(); //io_stihlt();
 		}
 		else {
 			if (fifo8_status(&keyfifo) != 0) {
@@ -129,7 +124,6 @@ void HariMain(void)
 					sprintf(s, "(%3d, %3d)", mx, my);
 					boxfill8(buf_back, binfo->scrnx, COL8_008484, 0, 0, 79, 15);
 					putfonts8_asc(buf_back, binfo->scrnx, 0, 0, COL8_FFFFFF, s);
-					//putblock8_8(buf_back, binfo->scrnx, 16, 16, mx, my, mcursor, 16);
 					sheet_refresh(sht_back, 0, 0, 80, 16);
 					sheet_slide(sht_mouse, mx, my);
 				}
@@ -174,7 +168,7 @@ void make_window8(unsigned char *buf, int xsize, int ysize, char *title)
 	boxfill8(buf, xsize, COL8_000084, 3, 3, xsize - 4, 20);
 	boxfill8(buf, xsize, COL8_848484, 1, ysize - 2, xsize - 2, ysize - 2);
 	boxfill8(buf, xsize, COL8_000000, 0, ysize - 1, xsize - 1, ysize - 1);
-	putfonts8_asc(buf, xsize, 4, 4, COL8_FFFFFF, title);
+	putfonts8_asc(buf, xsize, 24, 4, COL8_FFFFFF, title);
 	for (y = 0; y < 14; y++) {
 		for (x = 0; x < 16; x++) {
 			c = closebtn[y][x];

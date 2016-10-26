@@ -121,7 +121,7 @@ void sheet_refreshsub(struct SHTCTL *ctl, int vx0, int vy0, int vx1, int vy1, in
 	if (vy0 < 0) vy0 = 0;
 	if (vx1 > ctl->xsize) vx1 = ctl->xsize;
 	if (vy1 > ctl->ysize) vy1 = ctl->ysize;
-	for (h = h0; h <= ctl->top; h++) { //只刷新h0及以上图层，背景不刷新
+	for (h = h0; h <= h1; h++) { //只刷新h0及以上图层，背景不刷新
 		sht = ctl->sheets[h];
 		buf = sht->buf;
 		sid = sht - ctl->sheets0;
@@ -153,7 +153,6 @@ void sheet_updown(struct SHEET *sht, int height)
 	struct SHTCTL *ctl = sht->ctl;
 
 	int h, old = sht->height;
-
 	if (height > ctl->top + 1)
 		height = ctl->top + 1;
 	if (height < -1)
