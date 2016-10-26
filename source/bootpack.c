@@ -8,7 +8,7 @@ void HariMain(void)
 	struct BOOTINFO *binfo = (struct BOOTINFO *) ADR_BOOTINFO;
 	char s[40], keybuf[32], mousebuf[128];
 	int mx, my, i;
-	unsigned int memtotal, count = 0;
+	unsigned int memtotal;
 	struct MOUSE_DEC mdec;
 	struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
 	struct SHTCTL *shtctl;
@@ -20,6 +20,8 @@ void HariMain(void)
 	io_sti();
 	fifo8_init(&keyfifo, 32, keybuf);
 	fifo8_init(&mousefifo, 128, mousebuf);
+	//计时器初始化
+	init_pic();
 	io_out8(PIC0_IMR, 0xf9);
 	io_out8(PIC1_IMR, 0xef);
 
@@ -75,8 +77,7 @@ void HariMain(void)
 
 	for (;;) {
 		//计数器
-		count++;
-		sprintf(s, "%010d", count);
+		sprintf(s, "%010d", timerctl.count);
 		boxfill8(buf_win, 160, COL8_C6C6C6, 40, 28, 119, 43);
 		putfonts8_asc(buf_win, 160, 40, 28, COL8_000000, s);
 		sheet_refresh(sht_win, 40, 28, 120, 44);
