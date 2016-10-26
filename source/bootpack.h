@@ -167,6 +167,7 @@ struct SHEET {
 struct SHTCTL //管理图层
 {
 	unsigned char *vram;
+	unsigned char *map; //虚拟图层
 	int xsize, ysize, top;
 	struct SHEET *sheets[MAX_SHEETS];
 	struct SHEET sheets0[MAX_SHEETS];
