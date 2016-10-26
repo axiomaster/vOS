@@ -1,5 +1,5 @@
-OBJS_BOOTPACK = bootpack.obj naskfunc.obj hankaku.obj graphic.obj dsctbl.obj int.obj fifo.obj \
-					keyboard.obj mouse.obj memory.obj sheet.obj timer.obj
+OBJS_BOOTPACK = bootpack.obj naskfunc.obj hankaku.obj graphic.obj dsctbl.obj \
+		int.obj fifo.obj keyboard.obj mouse.obj memory.obj sheet.obj timer.obj
 TOOLPATH = ../z_tools/
 INCPATH = ../z_tools/haribote/
 
@@ -50,7 +50,7 @@ vOS.img : ipl.bin vOS.sys Makefile
 		imgout:vOS.img
 
 # 一般规则
-%.gas : %.c Makefile
+%.gas : %.c bootpack.h Makefile
 	$(CC1) -o $*.gas $*.c
 %.nas : %.gas Makefile
 	$(GAS2NASK) $*.gas $*.nas
@@ -59,7 +59,7 @@ vOS.img : ipl.bin vOS.sys Makefile
 
 # 命令
 img :
-	$(MAKE) -r vOS.img
+	$(MAKE) vOS.img
 
 run :
 	$(MAKE) img
@@ -75,10 +75,6 @@ clean :
 	-$(DEL) *.lst
 	-$(DEL) *.gas
 	-$(DEL) *.obj
-	-$(DEL) *.obj
-	-$(DEL) dsctbl.nas
-	-$(DEL) graphic.nas
-	-$(DEL) bootpack.nas
 	-$(DEL) bootpack.map
 	-$(DEL) bootpack.bim
 	-$(DEL) bootpack.hrb

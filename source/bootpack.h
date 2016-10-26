@@ -1,10 +1,7 @@
-//
-// Created by lism on 2016/10/9.
-//
 // asmhead.nas
 struct BOOTINFO {
     char cyls, leds, vmode, reserve;
-    short scrnx, scrny;
+    short scrnx, scrny; //分辨率
     char *vram;
 };
 #define ADR_BOOTINFO	0x00000ff0
@@ -43,7 +40,7 @@ void init_palette(void);
 void set_palette(int start, int end, unsigned char *rgb);
 void boxfill8(unsigned char *vram, int xsize, unsigned char c, int x0, int y0, int x1, int y1);
 void init_screen8(char *vram, int x, int y);
-//void putfont8(char *vram, int xsize, int x, int y, char c, char *font);
+void putfont8(char *vram, int xsize, int x, int y, char c, char *font);
 void putfonts8_asc(char *vram, int xsize, int x, int y, char c, unsigned char *s); //字符串
 void init_mouse_cursor8(char *mouse, char bc);
 void putblock8_8(char *vram, int vxsize, int pxsize,
@@ -92,12 +89,7 @@ void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar);
 #define AR_INTGATE32	0x008e
 
 // int.c
-struct KEYBUF{
-    unsigned char data[32];
-    int next_r, next_w, len;
-};
 void init_pic(void);
-
 void inthandler27(int *esp);
 #define PIC0_ICW1		0x0020 //0x20 - 0x2f 对应 IRQ0 - IRQ15 外部中断
 #define PIC0_OCW2		0x0020 //0x00 - 0x1f 对应CPU异常

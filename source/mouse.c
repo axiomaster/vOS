@@ -3,6 +3,8 @@
 //
 #include "bootpack.h"
 
+struct FIFO8 mousefifo;
+
 void inthandler2c(int *esp)
 {
     unsigned char data;

@@ -56,7 +56,7 @@ void timer_settime(struct TIMER *timer, unsigned int timeout)
 void inthandler20(int *esp)
 {
 	int i;
-	io_out8(PIC0_OCW2, 0x60);
+	io_out8(PIC0_OCW2, 0x60); //IRQ0接收的信息通知给PIC
 	timerctl.count++;
 	for (i = 0; i < MAX_TIMER; i++) {
 		if (timerctl.timer[i].flags == TIMER_FLAGS_USING) {

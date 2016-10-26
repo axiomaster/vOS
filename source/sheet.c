@@ -11,7 +11,7 @@ struct SHTCTL *shtctl_init(struct MEMMAN *memman, unsigned char *vram, int xsize
 	if (ctl == 0) {
 		goto err;
 	}
-	ctl->map = (unsigned char *)memman_alloc_4k(memman, xsize * ysize);
+	ctl->map = (unsigned char *)memman_alloc_4k(memman, xsize * ysize); //虚拟图层
 	if (ctl->map == 0) {
 		memman_free_4k(memman, (int)ctl, sizeof(struct SHTCTL));
 		goto err;
@@ -124,7 +124,7 @@ void sheet_refreshsub(struct SHTCTL *ctl, int vx0, int vy0, int vx1, int vy1, in
 	for (h = h0; h <= h1; h++) { //只刷新h0及以上图层，背景不刷新
 		sht = ctl->sheets[h];
 		buf = sht->buf;
-		sid = sht - ctl->sheets0;
+		sid = sht - ctl->sheets0; //
 
 		bx0 = vx0 - sht->vx0;
 		by0 = vy0 - sht->vy0;
@@ -139,8 +139,8 @@ void sheet_refreshsub(struct SHTCTL *ctl, int vx0, int vy0, int vx1, int vy1, in
 			vy = sht->vy0 + by;
 			for (bx = bx0; bx < bx1; bx++) {
 				vx = sht->vx0 + bx;
-				if (map[vy*ctl->xsize + vx] == sid) {
-					vram[vy*ctl->xsize + vx] = buf[by*sht->bxsize + bx];
+				if (map[vy * ctl->xsize + vx] == sid) {
+					vram[vy * ctl->xsize + vx] = buf[by * sht->bxsize + bx];
 				}
 			}
 		}
@@ -148,11 +148,12 @@ void sheet_refreshsub(struct SHTCTL *ctl, int vx0, int vy0, int vx1, int vy1, in
 	return;
 }
 
+
 void sheet_updown(struct SHEET *sht, int height)
 {
 	struct SHTCTL *ctl = sht->ctl;
-
 	int h, old = sht->height;
+
 	if (height > ctl->top + 1)
 		height = ctl->top + 1;
 	if (height < -1)
@@ -231,7 +232,7 @@ void sheet_refresh(struct SHTCTL *ctl)
 void sheet_refresh(struct SHEET *sht, int bx0, int by0, int bx1, int by1)
 {
 	if (sht->height >= 0) {
-		sheet_refreshsub(sht->ctl, sht->vx0 + bx0, sht->vy0 + by0, sht->vx0 + bx1, sht->vy0 + bx1, sht->height, sht->height);
+		sheet_refreshsub(sht->ctl, sht->vx0 + bx0, sht->vy0 + by0, sht->vx0 + bx1, sht->vy0 + by1, sht->height, sht->height);
 	}
 	return;
 }

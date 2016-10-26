@@ -3,6 +3,8 @@
 //
 #include "bootpack.h"
 
+struct FIFO8 keyfifo;
+
 void inthandler21(int *esp) //对应键盘中断
 {
     unsigned char data;
