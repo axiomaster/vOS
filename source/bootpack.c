@@ -32,7 +32,7 @@ void HariMain(void)
 
 	timer = timer_alloc();
 	timer_init(timer, &fifo, 10);
-	timer_settime(timer, 500);
+	timer_settime(timer, 300);
 
 	timer2 = timer_alloc();
 	timer_init(timer2, &fifo, 3);
@@ -131,7 +131,7 @@ void HariMain(void)
 				}
 			}
 			else if (i == 10)
-				putfonts8_asc_sht(sht_back, 0, 64, COL8_FFFFFF, COL8_008484, "5[sec]", 6);
+				putfonts8_asc_sht(sht_back, 0, 64, COL8_FFFFFF, COL8_008484, "3[sec]", 6);
 			else if (i == 3)
 				putfonts8_asc_sht(sht_back, 0, 80, COL8_FFFFFF, COL8_008484, "1[sec]", 6);
 			else if (i == 1) {
