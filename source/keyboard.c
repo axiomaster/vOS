@@ -11,7 +11,7 @@ void inthandler21(int *esp) //对应键盘中断
 	int data;
 	io_out8(PIC0_OCW2, 0x61); //PIC监视IRQ1中断
 	data = io_in8(PORT_KEYDAT);
-	fifo32_put(&keyfifo, data + keydata0);
+	fifo32_put(keyfifo, data + keydata0);
 	return;
 }
 

@@ -51,21 +51,40 @@ void timer_init(struct TIMER *timer, struct FIFO32 *fifo, int data)
 void timer_settime(struct TIMER *timer, unsigned int timeout)
 {
 	int e, i, j;
+	struct TIMER *t, *s;
 	timer->timeout = timeout + timerctl.count;
 	timer->flags = TIMER_FLAGS_USING;
 	e = io_load_eflags();
 	io_cli();
-	for (i = 0; i < timerctl.using; i++) { //查找位置
-		if (timerctl.timers[i]->timeout >= timer->timeout) {
-			break;
+	timerctl.using++;
+	if (timerctl.using == 1) {
+		timerctl.t0 = timer;
+		timer->next = 0;
+		timerctl.next = timer->timeout;
+		io_store_eflags(e);
+		return;
+	}
+	t = timerctl.t0;
+	if (timer->timeout <= t->timeout) {
+		timerctl.t0 = timer;
+		timer->next = t;
+		timerctl.next = timer->timeout;
+		io_store_eflags(e);
+		return;
+	}
+	for (;;) {
+		s = t;
+		t = t->next;
+		if (t == 0)break;
+		if (timer->timeout <= t->timeout) {
+			s->next = timer;
+			timer->next = t;
+			io_store_eflags(e);
+			return;
 		}
 	}
-	for (j = timerctl.using; j > i; j--) { //逐次后移
-		timerctl.timers[j] = timerctl.timers[j - 1];
-	}
-	timerctl.using++;
-	timerctl.timers[i] = timer;
-	timerctl.next = timerctl.timers[0]->timeout;
+	s->next = timer;
+	timer->next = 0;
 	io_store_eflags(e);
 	return;
 }
@@ -73,23 +92,28 @@ void timer_settime(struct TIMER *timer, unsigned int timeout)
 void inthandler20(int *esp)
 {
 	int i, j;
+	struct TIMER *timer;
 	io_out8(PIC0_OCW2, 0x60); //IRQ0接收的信息通知给PIC
 	timerctl.count++;
 	if (timerctl.next > timerctl.count) {
 		return;
 	}
+	timer = timerctl.t0;
 	for (i = 0; i < timerctl.using; i++) {
-		if (timerctl.timers[i]->timeout > timerctl.count)
+		if (timer->timeout > timerctl.count)
 			break;
-		timerctl.timers[i]->flags = TIMER_FLAGS_ALLOC; //已到期的定时器
-		fifo32_put(timerctl.timers[i]->fifo, timerctl.timers[i]->data);
+		timer->flags = TIMER_FLAGS_ALLOC;//已到期的定时器
+		fifo32_put(timer->fifo, timer->data);
+		timer = timer->next;
 	}
 	timerctl.using -= i;
-	for (j = 0; j < timerctl.using; j++) { //将失效的定时器清出-> 后面的定时器往前挪
-		timerctl.timers[j] = timerctl.timers[i + j];
-	}
+	//
+	timerctl.t0 = timer; //
+	//for (j = 0; j < timerctl.using; j++) { //将失效的定时器清出-> 后面的定时器往前挪
+	//	timerctl.timers[j] = timerctl.timers[i + j];
+	//}
 	if (timerctl.using > 0) {
-		timerctl.next = timerctl.timers[0]->timeout;
+		timerctl.next = timerctl.t0->timeout;
 	}
 	else {
 		timerctl.next = 0xffffffff;
