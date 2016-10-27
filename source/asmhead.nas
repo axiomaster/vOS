@@ -11,12 +11,12 @@ VRAM    EQU     0x0ff8
 
         ORG     0xc200      ; 启动文件
 
-        MOV     AL,0x13     ; VGA --> 让屏幕变黑
-        MOV     AH,0x00
+		MOV		BX, 0x4101	; VBE 640x480x8bit
+		MOV		AX,	0x4f02
         INT     0x10
         MOV     BYTE    [VMODE],8
-        MOV     WORD    [SCRNX],320
-        MOV     WORD    [SCRNY],200
+        MOV     WORD    [SCRNX],640
+        MOV     WORD    [SCRNY],480
         MOV     DWORD   [VRAM],0x000a0000
 
         MOV     AH,0x02
