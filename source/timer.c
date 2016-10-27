@@ -83,6 +83,7 @@ void timer_settime(struct TIMER *timer, unsigned int timeout)
 void inthandler20(int *esp)
 {
 	struct TIMER *timer;
+	char ts = 0;
 	io_out8(PIC0_OCW2, 0x60); //IRQ0接收的信息通知给PIC
 	timerctl.count++;
 	if (timerctl.next_time > timerctl.count) {
@@ -93,12 +94,20 @@ void inthandler20(int *esp)
 		if (timer->timeout > timerctl.count)
 			break;
 		timer->flags = TIMER_FLAGS_ALLOC;//已到期的定时器
-		fifo32_put(timer->fifo, timer->data);
+		if (timer != mt_timer) {
+			fifo32_put(timer->fifo, timer->data);
+		}
+		else {
+			ts = 1;
+		}
 		timer = timer->next_timer;
 	}
 	
 	//
 	timerctl.t0 = timer; //
 	timerctl.next_time = timer->timeout;
+	if (ts != 0) {
+		mt_taskswitch(); //切换
+	}
 	return;
 }
