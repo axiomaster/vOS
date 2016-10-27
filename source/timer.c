@@ -94,7 +94,7 @@ void inthandler20(int *esp)
 		if (timer->timeout > timerctl.count)
 			break;
 		timer->flags = TIMER_FLAGS_ALLOC;//已到期的定时器
-		if (timer != mt_timer) {
+		if (timer != task_timer) {
 			fifo32_put(timer->fifo, timer->data);
 		}
 		else {
@@ -102,12 +102,12 @@ void inthandler20(int *esp)
 		}
 		timer = timer->next_timer;
 	}
-	
+
 	//
 	timerctl.t0 = timer; //
 	timerctl.next_time = timer->timeout;
 	if (ts != 0) {
-		mt_taskswitch(); //切换
+		task_switch(); //切换
 	}
 	return;
 }
