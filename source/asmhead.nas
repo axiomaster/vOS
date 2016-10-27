@@ -1,3 +1,13 @@
+[INSTRSET "i486p"]
+
+VBEMODE	EQU		0x105			; 1024 x  768 x 8bitカラー
+; （画面モード一覧）
+;	0x100 :  640 x  400 x 8bitカラー
+;	0x101 :  640 x  480 x 8bitカラー
+;	0x103 :  800 x  600 x 8bitカラー
+;	0x105 : 1024 x  768 x 8bitカラー
+;	0x107 : 1280 x 1024 x 8bitカラー
+
 BOTPAK  EQU     0x00280000
 DSKCAC  EQU     0x00100000
 DSKCAC0 EQU     0x00008000
@@ -10,15 +20,57 @@ SCRNY   EQU     0x0ff6
 VRAM    EQU     0x0ff8
 
         ORG     0xc200      ; 启动文件
+; VBE确认
+		MOV		AX,0x9000
+		MOV		ES,AX
+		MOV		DI,0
+		MOV		AX,0x4f00
+		INT		0x10
+		CMP		AX,0x004f
+		JNE		scrn320
+; 检查VBE版本
+		MOV		AX,[ES:DI+4]
+		CMP		AX,0x0200
+		JB		scrn320			; if (AX < 0x0200) goto scrn320
+; 取得画面模式信息
+		MOV		CX,VBEMODE
+		MOV		AX,0x4f01
+		INT		0x10
+		CMP		AX,0x004f
+		JNE		scrn320
 
-		MOV		BX, 0x4101	; VBE 640x480x8bit
-		MOV		AX,	0x4f02
-        INT     0x10
-        MOV     BYTE    [VMODE],8
-        MOV     WORD    [SCRNX],640
-        MOV     WORD    [SCRNY],480
-        MOV     DWORD   [VRAM],0x000a0000
+; 画面模式信息确认
+		CMP		BYTE [ES:DI+0x19],8
+		JNE		scrn320
+		CMP		BYTE [ES:DI+0x1b],4
+		JNE		scrn320
+		MOV		AX,[ES:DI+0x00]
+		AND		AX,0x0080
+		JZ		scrn320	
 
+; 画面模式的切换
+		MOV		BX,VBEMODE+0x4000
+		MOV		AX,0x4f02
+		INT		0x10
+		MOV		BYTE [VMODE],8	; 画面モードをメモする（C言語が参照する）
+		MOV		AX,[ES:DI+0x12]
+		MOV		[SCRNX],AX
+		MOV		AX,[ES:DI+0x14]
+		MOV		[SCRNY],AX
+		MOV		EAX,[ES:DI+0x28]
+		MOV		[VRAM],EAX
+		JMP		keystatus				
+
+scrn320:
+		MOV		AL,0x13			; VGA图 320x200x8bit
+		MOV		AH,0x00
+		INT		0x10
+		MOV		BYTE [VMODE],8	; 画面モードをメモする（C言語が参照する）
+		MOV		WORD [SCRNX],320
+		MOV		WORD [SCRNY],200
+		MOV		DWORD [VRAM],0x000a0000
+
+keystatus:
         MOV     AH,0x02
         INT     0x16
         MOV     [LEDS],AL
