@@ -1,8 +1,8 @@
 // asmhead.nas
 struct BOOTINFO {
-    char cyls, leds, vmode, reserve;
-    short scrnx, scrny; //分辨率
-    char *vram;
+	char cyls, leds, vmode, reserve;
+	short scrnx, scrny; //分辨率
+	char *vram;
 };
 #define ADR_BOOTINFO	0x00000ff0
 
@@ -28,11 +28,12 @@ unsigned int memtest_sub(unsigned int start, unsigned int end);
 void farjmp(int eip, int cs);
 
 // fifo.c
-struct FIFO32{
-    int *buf;
-    int p, q, size, free, flags;
+struct FIFO32 {
+	int *buf;
+	int p, q, size, free, flags;
+	struct TASK *task; //记录要唤醒的成员
 };
-void fifo32_init(struct FIFO32 *fifo, int size, int *buf);
+void fifo32_init(struct FIFO32 *fifo, int size, int *buf, struct TASK *task);
 int fifo32_put(struct FIFO32 *fifo, int data);
 int fifo32_get(struct FIFO32 *fifo);
 int fifo32_status(struct FIFO32 *fifo);
@@ -46,7 +47,7 @@ void putfont8(char *vram, int xsize, int x, int y, char c, char *font);
 void putfonts8_asc(char *vram, int xsize, int x, int y, char c, unsigned char *s); //字符串
 void init_mouse_cursor8(char *mouse, char bc);
 void putblock8_8(char *vram, int vxsize, int pxsize,
-                 int pysize, int px0, int py0, char *buf, int bxsize);
+	int pysize, int px0, int py0, char *buf, int bxsize);
 #define COL8_000000		0
 #define COL8_FF0000		1
 #define COL8_00FF00		2
@@ -66,15 +67,15 @@ void putblock8_8(char *vram, int vxsize, int pxsize,
 
 // dsctbl.c
 struct SEGMENT_DESCRIPTOR {       //共8个字节
-    short limit_low, base_low;    //2,2
-    char base_mid, access_right;  //1,1
-    char limit_high, base_high;   //1,1
+	short limit_low, base_low;    //2,2
+	char base_mid, access_right;  //1,1
+	char limit_high, base_high;   //1,1
 };
 
 struct GATE_DESCRIPTOR {          //8个字节
-    short offset_low, selector;
-    char dw_count, access_right;
-    short offset_high;
+	short offset_low, selector;
+	char dw_count, access_right;
+	short offset_high;
 };
 void init_gdtidt(void);
 void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, int ar);
@@ -115,10 +116,10 @@ void init_keyboard(struct FIFO32 *fifo, int data0);
 #define PORT_KEYCMD     0x0064
 
 //mouse.c
-struct MOUSE_DEC{
-    unsigned char buf[3]; //鼠标中断产生3字节数据
-    unsigned char phase;  //中断数据读取状态
-    int x, y, btn;
+struct MOUSE_DEC {
+	unsigned char buf[3]; //鼠标中断产生3字节数据
+	unsigned char phase;  //中断数据读取状态
+	int x, y, btn;
 };
 void inthandler2c(int *esp); //鼠标 IRQ12 对应 0x2c
 void enable_mouse(struct FIFO32 *fifo, int data0, struct MOUSE_DEC *mdec);
@@ -170,7 +171,7 @@ struct SHTCTL //管理图层
 struct SHTCTL *shtctl_init(struct MEMMAN *memman, unsigned char *vram, int xsize, int ysize);
 struct SHEET *sheet_alloc(struct SHTCTL *ctl);
 //设置缓冲区大小和透明色
-void sheet_setbuf(struct SHEET *sht, unsigned char *buf, int xsize, int ysize, int col_inv); 
+void sheet_setbuf(struct SHEET *sht, unsigned char *buf, int xsize, int ysize, int col_inv);
 // 图层上下移动
 void sheet_updown(struct SHEET *sht, int height);
 // 刷新
@@ -198,7 +199,7 @@ struct TIMERCTL
 	unsigned int next_time; //最近的有定时器 预约 的时刻
 	unsigned int using;
 	struct TIMER *t0;
-//	struct TIMER *timers[MAX_TIMER];
+	//	struct TIMER *timers[MAX_TIMER];
 	struct TIMER timers0[MAX_TIMER]; //定时器按顺序排列
 };
 extern struct TIMERCTL timerctl;
@@ -225,7 +226,7 @@ struct TASK
 	int sel, flags;		//selector
 	struct TSS32 tss;
 };
-struct TASKCTL 
+struct TASKCTL
 {
 	int running; //正在运行的任务数量
 	int now;	//正在运行的任务
@@ -237,3 +238,4 @@ struct TASK *task_init(struct MEMMAN *memman);
 struct TASK *task_alloc(void);
 void task_run(struct TASK *task);
 void task_switch(void);
+void task_sleep(struct TASK *task);
