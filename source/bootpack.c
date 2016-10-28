@@ -48,7 +48,7 @@ void HariMain(void)
 	memman_free(memman, 0x00001000, 0x0009e000);
 	memman_free(memman, 0x00400000, memtotal - 0x00400000);
 	//调色板
-	init_palette(); 
+	init_palette();
 	//任务管理
 	shtctl = shtctl_init(memman, binfo->vram, binfo->scrnx, binfo->scrny);
 	task_a = task_init(memman); //task_a
@@ -76,7 +76,7 @@ void HariMain(void)
 		task_b[i]->tss.fs = 1 * 8;
 		task_b[i]->tss.gs = 1 * 8;
 		*((int *)(task_b[i]->tss.esp + 4)) = (int)sht_win_b[i];
-		task_run(task_b[i]);
+		task_run(task_b[i], i + 1); //不同优先级
 	}
 
 	// task a
