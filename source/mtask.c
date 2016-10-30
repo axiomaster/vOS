@@ -55,10 +55,17 @@ void task_switchsub(void)
 	return;
 }
 
+void task_idle(void)
+{
+	for (;;) {
+		io_hlt(); //放入最下层level，这样最下层level一直有任务，cpu空闲即会被执行
+	}
+}
+
 struct TASK *task_init(struct MEMMAN *memman)
 {
 	int i;
-	struct TASK *task;
+	struct TASK *task, *idle;
 	struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)ADR_GDT;
 	taskctl = (struct TASKCTL *) memman_alloc_4k(memman, sizeof(struct TASKCTL));
 
@@ -83,6 +90,19 @@ struct TASK *task_init(struct MEMMAN *memman)
 	load_tr(task->sel);
 	task_timer = timer_alloc();
 	timer_settime(task_timer, task->priority); //根据任务优先级设定运行时间
+
+	//idle
+	idle = task_alloc();
+	idle->tss.esp = memman_alloc_4k(memman, 64 * 1024) + 64 * 1024;
+	idle->tss.eip = (int)&task_idle;
+	idle->tss.es = 1 * 8;
+	idle->tss.cs = 2 * 8;
+	idle->tss.ss = 1 * 8;
+	idle->tss.ds = 1 * 8;
+	idle->tss.fs = 1 * 8;
+	idle->tss.gs = 1 * 8;
+	task_run(idle, MAX_TASKLEVELS - 1, 1);
+
 	return task;
 }
 struct TASK *task_alloc(void)
