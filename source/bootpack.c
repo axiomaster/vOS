@@ -1,5 +1,3 @@
-/* bootpack偺儊僀儞 */
-
 #include "bootpack.h"
 #include <stdio.h>
 
@@ -28,42 +26,46 @@ void HariMain(void)
 		'2', '3', '0', '.'
 	};
 	unsigned char *buf_back, buf_mouse[256], *buf_win, *buf_win_b;
-	struct SHEET *sht_back, *sht_mouse, *sht_win, *sht_win_b[3];
-	struct TASK *task_a, *task_b[3];
+	struct SHEET *sht_back, *sht_mouse, *sht_win, *sht_win_b[3]; //3个b窗口
+	struct TASK *task_a, *task_b[3]; // 任务
 	struct TIMER *timer;
 
 	init_gdtidt();
 	init_pic();
-	io_sti(); /* IDT/PIC偺弶婜壔偑廔傢偭偨偺偱CPU偺妱傝崬傒嬛巭傪夝彍 */
-	fifo32_init(&fifo, 128, fifobuf, 0);
+	io_sti(); /* IDT/PIC*/
+	fifo32_init(&fifo, 128, fifobuf, 0); //所有中断共享一个fifo,根据fifo内容确实是哪个定时器
+										 //中断初始化
 	init_pit();
 	init_keyboard(&fifo, 256);
 	enable_mouse(&fifo, 512, &mdec);
-	io_out8(PIC0_IMR, 0xf8); /* PIT偲PIC1偲僉乕儃乕僪傪嫋壜(11111000) */
-	io_out8(PIC1_IMR, 0xef); /* 儅僂僗傪嫋壜(11101111) */
-
+	io_out8(PIC0_IMR, 0xf8); //0xf9 -> 0xf8
+	io_out8(PIC1_IMR, 0xef); 
+	
+	//内存管理
 	memtotal = memtest(0x00400000, 0xbfffffff);
 	memman_init(memman);
 	memman_free(memman, 0x00001000, 0x0009e000); /* 0x00001000 - 0x0009efff */
 	memman_free(memman, 0x00400000, memtotal - 0x00400000);
-
+	
+	//调色板
 	init_palette();
+	//任务管理
 	shtctl = shtctl_init(memman, binfo->vram, binfo->scrnx, binfo->scrny);
 	task_a = task_init(memman);
-	fifo.task = task_a;
+	fifo.task = task_a; //task_a
 	task_run(task_a, 1, 2);
 
-	/* sht_back */
+	// 背景图层
 	sht_back  = sheet_alloc(shtctl);
 	buf_back  = (unsigned char *) memman_alloc_4k(memman, binfo->scrnx * binfo->scrny);
-	sheet_setbuf(sht_back, buf_back, binfo->scrnx, binfo->scrny, -1); /* 摟柧怓側偟 */
-	init_screen8(buf_back, binfo->scrnx, binfo->scrny);
+	sheet_setbuf(sht_back, buf_back, binfo->scrnx, binfo->scrny, -1); 
+	init_screen8(buf_back, binfo->scrnx, binfo->scrny); //在背景图层上绘制底边栏
 
 	/* sht_win_b */
 	for (i = 0; i < 3; i++) {
 		sht_win_b[i] = sheet_alloc(shtctl);
 		buf_win_b = (unsigned char *) memman_alloc_4k(memman, 144 * 52);
-		sheet_setbuf(sht_win_b[i], buf_win_b, 144, 52, -1); /* 摟柧怓側偟 */
+		sheet_setbuf(sht_win_b[i], buf_win_b, 144, 52, -1); /* 透明色 */
 		sprintf(s, "task_b%d", i);
 		make_window8(buf_win_b, 144, 52, s, 0);
 		task_b[i] = task_alloc();
@@ -76,40 +78,43 @@ void HariMain(void)
 		task_b[i]->tss.fs = 1 * 8;
 		task_b[i]->tss.gs = 1 * 8;
 		*((int *) (task_b[i]->tss.esp + 4)) = (int) sht_win_b[i];
-		task_run(task_b[i], 2, i + 1);
+		task_run(task_b[i], 2, i + 1); //不同优先级
 	}
 
 	/* sht_win */
 	sht_win   = sheet_alloc(shtctl);
-	buf_win   = (unsigned char *) memman_alloc_4k(memman, 160 * 52);
-	sheet_setbuf(sht_win, buf_win, 144, 52, -1); /* 摟柧怓側偟 */
-	make_window8(buf_win, 144, 52, "task_a", 1);
-	make_textbox8(sht_win, 8, 28, 128, 16, COL8_FFFFFF);
+	buf_win   = (unsigned char *) memman_alloc_4k(memman, 160 * 52); //窗口
+	sheet_setbuf(sht_win, buf_win, 144, 52, -1);  //-1
+	make_window8(buf_win, 144, 52, "task_a", 1); //激活的窗口
+	make_textbox8(sht_win, 8, 28, 128, 16, COL8_FFFFFF); // 窗口上绘制
 	cursor_x = 8;
 	cursor_c = COL8_FFFFFF;
-	timer = timer_alloc();
+	timer = timer_alloc(); //光标定时器
 	timer_init(timer, &fifo, 1);
 	timer_settime(timer, 50);
 
-	/* sht_mouse */
+	//鼠标
 	sht_mouse = sheet_alloc(shtctl);
-	sheet_setbuf(sht_mouse, buf_mouse, 16, 16, 99);
+	sheet_setbuf(sht_mouse, buf_mouse, 16, 16, 99); //99
 	init_mouse_cursor8(buf_mouse, 99);
-	mx = (binfo->scrnx - 16) / 2; /* 夋柺拞墰偵側傞傛偆偵嵗昗寁嶼 */
+	mx = (binfo->scrnx - 16) / 2; 
 	my = (binfo->scrny - 28 - 16) / 2;
-
+	//调整窗口位置
 	sheet_slide(sht_back, 0, 0);
 	sheet_slide(sht_win_b[0], 168,  56);
 	sheet_slide(sht_win_b[1],   8, 116);
 	sheet_slide(sht_win_b[2], 168, 116);
 	sheet_slide(sht_win,        8,  56);
 	sheet_slide(sht_mouse, mx, my);
-	sheet_updown(sht_back,     0);
+	//调整图层叠加关系
+	sheet_updown(sht_back,     0); //图层
 	sheet_updown(sht_win_b[0], 1);
 	sheet_updown(sht_win_b[1], 2);
 	sheet_updown(sht_win_b[2], 3);
 	sheet_updown(sht_win,      4);
-	sheet_updown(sht_mouse,    5);
+	sheet_updown(sht_mouse,    5); //鼠标位于最上层
+	
+								   //背景图层上绘制文字
 	sprintf(s, "(%3d, %3d)", mx, my);
 	putfonts8_asc_sht(sht_back, 0, 0, COL8_FFFFFF, COL8_008484, s, 10);
 	sprintf(s, "memory %dMB   free : %dKB",
@@ -120,33 +125,32 @@ void HariMain(void)
 		io_cli();
 		if (fifo32_status(&fifo) == 0) {
 			task_sleep(task_a);
-			io_sti();
+			io_sti(); //io_stihlt();
 		} else {
 			i = fifo32_get(&fifo);
 			io_sti();
-			if (256 <= i && i <= 511) { /* 僉乕儃乕僪僨乕僞 */
+			if (256 <= i && i <= 511) {    //键盘
 				sprintf(s, "%02X", i - 256);
 				putfonts8_asc_sht(sht_back, 0, 16, COL8_FFFFFF, COL8_008484, s, 2);
 				if (i < 0x54 + 256) {
-					if (keytable[i - 256] != 0 && cursor_x < 128) { /* 捠忢暥帤 */
-						/* 堦暥帤昞帵偟偰偐傜丄僇乕僜儖傪1偮恑傔傞 */
+					if (keytable[i - 256] != 0 && cursor_x < 144) { /* 通常文字 */
+																	/* 移动光标 */
 						s[0] = keytable[i - 256];
 						s[1] = 0;
 						putfonts8_asc_sht(sht_win, cursor_x, 28, COL8_000000, COL8_FFFFFF, s, 1);
 						cursor_x += 8;
 					}
 				}
-				if (i == 256 + 0x0e && cursor_x > 8) { /* 僶僢僋僗儁乕僗 */
-					/* 僇乕僜儖傪僗儁乕僗偱徚偟偰偐傜丄僇乕僜儖傪1偮栠偡 */
+				if (i == 256 + 0x0e && cursor_x > 8) { /* 退格 */
+													   /* 后移1次光标 */
 					putfonts8_asc_sht(sht_win, cursor_x, 28, COL8_000000, COL8_FFFFFF, " ", 1);
 					cursor_x -= 8;
 				}
-				/* 僇乕僜儖偺嵞昞帵 */
+				/* 光标再表示 */
 				boxfill8(sht_win->buf, sht_win->bxsize, cursor_c, cursor_x, 28, cursor_x + 7, 43);
 				sheet_refresh(sht_win, cursor_x, 28, cursor_x + 8, 44);
-			} else if (512 <= i && i <= 767) { /* 儅僂僗僨乕僞 */
+			} else if (512 <= i && i <= 767) {  //鼠标
 				if (mouse_decode(&mdec, i - 512) != 0) {
-					/* 僨乕僞偑3僶僀僩懙偭偨偺偱昞帵 */
 					sprintf(s, "[lcr %4d %4d]", mdec.x, mdec.y);
 					if ((mdec.btn & 0x01) != 0) {
 						s[1] = 'L';
@@ -158,7 +162,7 @@ void HariMain(void)
 						s[2] = 'C';
 					}
 					putfonts8_asc_sht(sht_back, 32, 16, COL8_FFFFFF, COL8_008484, s, 15);
-					/* 儅僂僗僇乕僜儖偺堏摦 */
+
 					mx += mdec.x;
 					my += mdec.y;
 					if (mx < 0) {
@@ -176,17 +180,16 @@ void HariMain(void)
 					sprintf(s, "(%3d, %3d)", mx, my);
 					putfonts8_asc_sht(sht_back, 0, 0, COL8_FFFFFF, COL8_008484, s, 10);
 					sheet_slide(sht_mouse, mx, my);
-					if ((mdec.btn & 0x01) != 0) {
-						/* 嵍儃僞儞傪墴偟偰偄偨傜丄sht_win傪摦偐偡 */
+					if ((mdec.btn & 0x01) != 0) { //左键按下，控制窗口移动
 						sheet_slide(sht_win, mx - 80, my - 8);
 					}
 				}
-			} else if (i <= 1) { /* 僇乕僜儖梡僞僀儅 */
+			} else if (i <= 1) {
 				if (i != 0) {
-					timer_init(timer, &fifo, 0); /* 師偼0傪 */
+					timer_init(timer, &fifo, 0);  // 置0
 					cursor_c = COL8_000000;
 				} else {
-					timer_init(timer, &fifo, 1); /* 師偼1傪 */
+					timer_init(timer, &fifo, 1);  // 置1
 					cursor_c = COL8_FFFFFF;
 				}
 				timer_settime(timer, 50);
@@ -217,7 +220,7 @@ void make_window8(unsigned char *buf, int xsize, int ysize, char *title, char ac
 	};
 	int x, y;
 	char c, tc, tbc;
-	if (act != 0) {
+	if (act != 0) { //根据窗口不同的状态，绘制不同的颜色
 		tc = COL8_FFFFFF;
 		tbc = COL8_000084;
 	} else {
