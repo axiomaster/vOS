@@ -120,7 +120,7 @@ void task_run(struct TASK *task, int level, int priority)
 	if (priority > 0) { //为0时，保持之前优先级
 		task->priority = priority;
 	}
-	if (task->flags != 2 && task->level != level) {
+	if (task->flags == 2 && task->level != level) {
 		task_remove(task);
 	}
 	if (task->flags != 2) { //从休眠状态唤醒
