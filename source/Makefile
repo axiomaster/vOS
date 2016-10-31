@@ -47,6 +47,8 @@ vOS.img : ipl.bin vOS.sys Makefile
 	$(EDIMG)   imgin:../z_tools/fdimg0at.tek \
 		wbinimg src:ipl.bin len:512 from:0 to:0 \
 		copy from:vOS.sys to:@: \
+		copy from:ipl.nas to:@: \
+		copy from:make.bat to:@: \
 		imgout:vOS.img
 
 # 一般规则
