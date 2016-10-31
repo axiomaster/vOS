@@ -412,6 +412,7 @@ void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int c)
 	return;
 }
 
+
 void console_task(struct SHEET *sheet)
 {
 	struct TIMER *timer;
@@ -419,6 +420,7 @@ void console_task(struct SHEET *sheet)
 
 	int i, fifobuf[128], cursor_x = 16, cursor_y = 28, cursor_c = -1; //先将光标禁用
 	char s[2];
+	int x, y;
 
 	fifo32_init(&task->fifo, 128, fifobuf, task); //
 
@@ -437,14 +439,14 @@ void console_task(struct SHEET *sheet)
 		else {
 			i = fifo32_get(&task->fifo);
 			io_sti();
-			if (i <= 1) { /* 光标 */
+			if (i <= 1) { // 光标 
 				if (i != 0) {
-					timer_init(timer, &task->fifo, 0); /* 置0 */
+					timer_init(timer, &task->fifo, 0); // 置0
 					if (cursor_c >= 0)
 						cursor_c = COL8_FFFFFF;
 				}
 				else {
-					timer_init(timer, &task->fifo, 1); /* 置1 */
+					timer_init(timer, &task->fifo, 1); // 置1
 					if (cursor_c >= 0)
 						cursor_c = COL8_000000;
 				}
@@ -460,18 +462,31 @@ void console_task(struct SHEET *sheet)
 			else if (256 <= i&&i <= 511)
 			{
 				if (i == 8 + 256) { //退格
-					if (cursor_c > 16) {
+					if (cursor_x > 16) {
 						putfonts8_asc_sht(sheet, cursor_x, cursor_y, COL8_FFFFFF, COL8_000000, " ", 1);
 						cursor_x -= 8;
 					}
 				}
 				else if (i == 10 + 256) {
-					if (cursor_y < 28 + 112) { //enter
-						putfonts8_asc_sht(sheet, cursor_x, cursor_y, COL8_FFFFFF, COL8_000000, " ", 1);
+					putfonts8_asc_sht(sheet, cursor_x, cursor_y, COL8_FFFFFF, COL8_000000, " ", 1);
+					if (cursor_y < 28 + 112)  //enter
 						cursor_y += 16;
-						putfonts8_asc_sht(sheet, 8, cursor_y, COL8_FFFFFF, COL8_000000, ">", 1);
-						cursor_x = 16;
+					else
+					{
+						for (y = 28; y < 28 + 112; y++) {
+							for (x = 8; x < 8 + 240; x++) {
+								sheet->buf[x + y * sheet->bxsize] = sheet->buf[x + (y + 16) * sheet->bxsize];
+							}
+						}
+						for (y = 28 + 112; y < 28 + 128; y++) {
+							for (x = 8; x < 8 + 240; x++) {
+								sheet->buf[x + y * sheet->bxsize] = COL8_000000;
+							}
+						}
+						sheet_refresh(sheet, 8, 28, 8 + 240, 28 + 128);
 					}
+					putfonts8_asc_sht(sheet, 8, cursor_y, COL8_FFFFFF, COL8_000000, ">", 1);
+					cursor_x = 16;
 				}
 				else {
 					if (cursor_x < 240) {
