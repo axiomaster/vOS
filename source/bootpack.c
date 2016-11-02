@@ -557,6 +557,7 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 						type_next_file:
 							x++;
 						}
+						//找到文件
 						if (x < 224 && finfo[x].name[0] != 0x00) {
 							y = finfo[x].size;
 							p = (char *)(finfo[x].clustno * 512 + 0x003e00 + ADR_DISKIMG);
@@ -564,11 +565,33 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 							for (x = 0; x < y; x++) {
 								s[0] = p[x];
 								s[1] = 0;
-								putfonts8_asc_sht(sheet, cursor_x, cursor_y, COL8_FFFFFF, COL8_000000, s, 1);
-								cursor_x += 8;
-								if (cursor_x == 8 + 240) {
+								if (s[0] == 0x09) { //制表符
+									for (;;) {
+										putfonts8_asc_sht(sheet, cursor_x, cursor_y, COL8_FFFFFF, COL8_000000, s, 1);
+										cursor_x += 8;
+										if (cursor_x == 8 + 240) {
+											cursor_x = 8;
+											cursor_y = cons_newline(cursor_y, sheet);
+										}
+										if (((cursor_x - 8) & 0x1f) == 0) {
+											break; //被32整除
+										}
+									}
+								}
+								else if (s[0] == 0x0a) { //换行
 									cursor_x = 8;
 									cursor_y = cons_newline(cursor_y, sheet);
+								}
+								else if (s[0] == 0x0d) { //回车
+
+								}
+								else {
+									putfonts8_asc_sht(sheet, cursor_x, cursor_y, COL8_FFFFFF, COL8_000000, s, 1);
+									cursor_x += 8;
+									if (cursor_x == 8 + 240) {
+										cursor_x = 8;
+										cursor_y = cons_newline(cursor_y, sheet);
+									}
 								}
 							}
 						}
