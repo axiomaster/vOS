@@ -269,8 +269,6 @@ void HariMain(void)
 					if (my > binfo->scrny - 1) {
 						my = binfo->scrny - 1;
 					}
-					//sprintf(s, "(%3d, %3d)", mx, my);
-					//putfonts8_asc_sht(sht_back, 0, 0, COL8_FFFFFF, COL8_008484, s, 10);
 					sheet_slide(sht_mouse, mx, my);
 					if ((mdec.btn & 0x01) != 0) { //左键按下，控制窗口移动
 						sheet_slide(sht_win, mx - 80, my - 8);
