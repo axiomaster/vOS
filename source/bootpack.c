@@ -430,7 +430,7 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 	struct TASK *task = task_now();
 
 	int i, fifobuf[128], cursor_x = 16, cursor_y = 28, cursor_c = -1; //先将光标禁用
-	char s[2], cmdline[30], *p;
+	char s[30], cmdline[30], *p;
 	struct MEMMAN *memman = (struct MEMMAN*) MEMMAN_ADDR;
 	int x, y;
 	struct FILEINFO *finfo = (struct FILEINFO *) (ADR_DISKIMG + 0x002600);
@@ -484,7 +484,7 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 					putfonts8_asc_sht(sheet, cursor_x, cursor_y, COL8_FFFFFF, COL8_000000, " ", 1);
 					cmdline[cursor_x / 8 - 2] = 0;
 					cursor_y = cons_newline(cursor_y, sheet);
-					if(strcmp(cmdline, "mem") == 0)
+					if (strcmp(cmdline, "mem") == 0)
 					{
 						sprintf(s, "total   %dMB", memtotal / (1024 * 1024));
 						putfonts8_asc_sht(sheet, 8, cursor_y, COL8_FFFFFF, COL8_000000, s, 30);
@@ -541,6 +541,7 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 								y++;
 							}
 						}
+						// 寻找文件
 						for (x = 0; x < 224;) {
 							if (finfo[x].name[0] == 0x00) {
 								break;
