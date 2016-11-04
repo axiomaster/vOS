@@ -215,10 +215,11 @@ _farcall:		; void farcall(int eip, int cs)
 		RET
 
 _asm_cons_putchar:
+		STI
 		PUSH	1
 		AND		EAX,0xff
 		PUSH	EAX
 		PUSH	DWORD [0x0fec]
 		CALL	_cons_putchar
 		ADD		ESP, 12
-		RETF		
+		IRETD		
