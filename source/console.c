@@ -14,6 +14,7 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 	cons.cur_x = 8;
 	cons.cur_y = 28;
 	cons.cur_c = -1;
+	*((int *)0x0fec) = (int)&cons; //×¼±¸µØÖ·£¬ÓÃÓÚasm_cons_putchar
 
 	fifo32_init(&task->fifo, 128, fifobuf, task);
 	timer = timer_alloc();
@@ -32,20 +33,20 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 		else {
 			i = fifo32_get(&task->fifo);
 			io_sti();
-			if (i <= 1) { // ¹â±ê 
+			if (i <= 1) { // ï¿½ï¿½ï¿½ï¿½ 
 				if (i != 0) {
-					timer_init(timer, &task->fifo, 0); // ÖÃ0
+					timer_init(timer, &task->fifo, 0); // ï¿½ï¿½0
 					if (cons.cur_c >= 0)
 						cons.cur_c = COL8_FFFFFF;
 				}
 				else {
-					timer_init(timer, &task->fifo, 1); // ÖÃ1
+					timer_init(timer, &task->fifo, 1); // ï¿½ï¿½1
 					if (cons.cur_c >= 0)
 						cons.cur_c = COL8_000000;
 				}
 				timer_settime(timer, 50);
 			}
-			if (i == 2) { //¹â±ê¿ªÆô
+			if (i == 2) { //ï¿½ï¿½ï¿½ê¿ªï¿½ï¿½
 				cons.cur_c = COL8_FFFFFF;
 			}
 			if (i == 3) {
@@ -54,7 +55,7 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 			}
 			else if (256 <= i&&i <= 511)
 			{
-				if (i == 8 + 256) { //ÍË¸ñ
+				if (i == 8 + 256) { //ï¿½Ë¸ï¿½
 					if (cons.cur_x > 16) {
 						cons_putchar(&cons, ' ', 0);
 						cons.cur_x -= 8;
@@ -95,14 +96,14 @@ void cons_putchar(struct CONSOLE *cons, int chr, char move)
 				cons_newline(cons);
 			}
 			if (((cons->cur_x - 8) & 0x1f) == 0) {
-				break; //±»32Õû³ý
+				break; //ï¿½ï¿½32ï¿½ï¿½ï¿½ï¿½
 			}
 		}
 	}
-	else if (s[0] == 0x0a) { //»»ÐÐ
+	else if (s[0] == 0x0a) { //ï¿½ï¿½ï¿½ï¿½
 		cons_newline(cons);
 	}
-	else if (s[0] == 0x0d) { //»Ø³µ
+	else if (s[0] == 0x0d) { //ï¿½Ø³ï¿½
 
 	}
 	else {
@@ -121,10 +122,10 @@ void cons_newline(struct CONSOLE *cons)
 {
 	int x, y;
 	if (cons->cur_y < 28 + 112) {
-		cons->cur_y += 16; // ¹â±êÏÂÒÆ
+		cons->cur_y += 16; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	}
 	else {
-		//¹ö¶¯
+		//ï¿½ï¿½ï¿½ï¿½
 		for (y = 28; y < 28 + 112; y++) {
 			for (x = 8; x < 8 + 240; x++) {
 				cons->sht->buf[x + y * cons->sht->bxsize] = cons->sht->buf[x + (y + 16) * cons->sht->bxsize];
@@ -137,7 +138,7 @@ void cons_newline(struct CONSOLE *cons)
 		}
 		sheet_refresh(cons->sht, 8, 28, 8 + 240, 28 + 128);
 	}
-	cons->cur_x = 8; //È¥µô»áÓÐÆ«ÒÆ
+	cons->cur_x = 8; //È¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ«ï¿½ï¿½
 	return;
 }
 
@@ -152,7 +153,7 @@ void cons_runcmd(char *cmdline, struct CONSOLE *cons, int *fat, unsigned int mem
 	else if (strcmp(cmdline, "dir") == 0) {
 		cmd_dir(cons);
 	}
-	else if (strncmp(cmdline, "type ", 5) == 5) { //ÓÐµã¶ù²»Ò»Ñù
+	else if (strncmp(cmdline, "type ", 5) == 5) { //ï¿½Ðµï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½
 		cmd_type(cons, fat, cmdline);
 	}
 	else if (strcmp(cmdline, "hlt") == 0) {
@@ -196,7 +197,7 @@ void cmd_cls(struct CONSOLE *cons)
 void cmd_dir(struct CONSOLE *cons)
 {
 	struct FILEINFO *finfo = (struct FILEINFO *)(ADR_DISKIMG + 0x002600);
-	int x, y; //Á½¸ö±äÁ¿£¬i,j
+	int x, y; //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½i,j
 	char s[30];
 	for (x = 0; x < 224; x++) {
 		if (finfo[x].name[0] == 0x00) {
@@ -226,14 +227,14 @@ void cmd_type(struct CONSOLE *cons, int *fat, char *cmdline)
 	struct FILEINFO *finfo = file_search(cmdline + 5, (struct FILEINFO *) (ADR_DISKIMG + 0x002600), 224);
 	char *p;
 	int i;
-	if (finfo != 0x00) {	//ÕÒµ½ÎÄ¼þ
+	if (finfo != 0x00) {	//ï¿½Òµï¿½ï¿½Ä¼ï¿½
 		//y = finfo[x].size;
 		p = (char *)memman_alloc_4k(memman, finfo->size);
 		file_loadfile(finfo->clustno, finfo->size, p, fat, (char *)(ADR_DISKIMG + 0x003e00));
 		for (i = 0; i < finfo->size; i++) {
 			cons_putchar(cons, p[i], 1);
 		}
-		memman_free_4k(memman, (int)p, finfo->size); //ÊÍ·Åp
+		memman_free_4k(memman, (int)p, finfo->size); //ï¿½Í·ï¿½p
 	}
 	else {
 		putfonts8_asc_sht(cons->sht, 8, cons->cur_y, COL8_FFFFFF, COL8_000000, "File not found.", 15);
@@ -255,7 +256,7 @@ void cmd_hlt(struct CONSOLE *cons, int *fat)
 		p = (char *)memman_alloc_4k(memman, finfo->size);
 		file_loadfile(finfo->clustno, finfo->size, p, fat, (char *)(ADR_DISKIMG + 0x003e00));
 		set_segmdesc(gdt + 1003, finfo->size - 1, (int)p, AR_CODE32_ER);
-		farjmp(0, 1003 * 8); //Ìø×ªµ½³ÌÐòÔËÐÐ
+		farcall(0, 1003 * 8); //ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		memman_free_4k(memman, (int)p, finfo->size);
 	}
 	else {

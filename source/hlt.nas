@@ -1,5 +1,4 @@
 [BITS 32]
-	CLI
-fin:
-	HLT
-	JMP fin
+	MOV		AL,'A'
+	CALL	2*8:0xBBF		;cons_putchar µØÖ·
+	RETF
