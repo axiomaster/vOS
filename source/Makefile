@@ -41,19 +41,19 @@ bootpack.bim : $(OBJS_BOOTPACK) Makefile
 bootpack.hrb : bootpack.bim Makefile
 	$(BIM2HRB) bootpack.bim bootpack.hrb 0
 
-hlt.hrb : hlt.nas Makefile
-	$(NASK) hlt.nas hlt.hrb hlt.lst
+hello.hrb : hello.nas Makefile
+	$(NASK) hello.nas hello.hrb hello.lst
 
 vOS.sys: asmhead.bin bootpack.hrb Makefile
 	copy /B asmhead.bin+bootpack.hrb vOS.sys
 
-vOS.img : ipl.bin vOS.sys hlt.hrb Makefile
+vOS.img : ipl.bin vOS.sys hello.hrb Makefile
 	$(EDIMG)   imgin:../z_tools/fdimg0at.tek \
 		wbinimg src:ipl.bin len:512 from:0 to:0 \
 		copy from:vOS.sys to:@: \
 		copy from:ipl.nas to:@: \
 		copy from:make.bat to:@: \
-		copy from:hlt.hrb to:@: \
+		copy from:hello.hrb to:@: \
 		imgout:vOS.img
 
 # 一般规则
