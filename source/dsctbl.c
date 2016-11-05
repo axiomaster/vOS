@@ -29,7 +29,7 @@ void init_gdtidt(void) //gdt表 idt表
 	set_gatedesc(idt + 0x27, (int) asm_inthandler27, 2 * 8, AR_INTGATE32);
 	set_gatedesc(idt + 0x2c, (int) asm_inthandler2c, 2 * 8, AR_INTGATE32);    
 
-	set_gatedesc(idt + 0x40, (int)asm_cons_putchar, 2 * 8, AR_INTGATE32); //注册为普通函数
+	set_gatedesc(idt + 0x40, (int)asm_hrb_api, 2 * 8, AR_INTGATE32); //注册为普通函数
 
     return;
 }
