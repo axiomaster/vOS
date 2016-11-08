@@ -226,7 +226,7 @@ void cmd_dir(struct CONSOLE *cons)
 		}
 		if (finfo[x].name[0] != 0xe5) {
 			if ((finfo[x].type & 0x18) == 0) {
-				sprintf(s, "filename.ext   %7d", finfo[x].size);
+				sprintf(s, "filename.ext   %7d\n", finfo[x].size);
 				for (y = 0; y < 8; y++) {
 					s[y] = finfo[x].name[y];
 				}
@@ -274,7 +274,7 @@ int cmd_app(struct CONSOLE *cons, int *fat, char *cmdline)
 	struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
 	struct FILEINFO *finfo;
 	struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *) ADR_GDT;
-	char name[18], *p;
+	char name[18], *p, *q;
 	int i;
 
 	//¸ù¾ÝÃüÁîÐÐÉú³ÉÎÄ¼þ
@@ -297,9 +297,11 @@ int cmd_app(struct CONSOLE *cons, int *fat, char *cmdline)
 	}
 	if (finfo != 0) {
 		p = (char *)memman_alloc_4k(memman, finfo->size);
+		q = (char *)memman_alloc_4k(memman, 64 * 1024);
 		*((int *)0xfe8) = (int)p; //
 		file_loadfile(finfo->clustno, finfo->size, p, fat, (char *)(ADR_DISKIMG + 0x003e00));
-		set_segmdesc(gdt + 1003, finfo->size - 1, (int)p, AR_CODE32_ER);
+		set_segmdesc(gdt + 1003, finfo->size - 1, (int)p, AR_CODE32_ER); //Ó¦ÓÃ³ÌÐò´úÂë¶Î
+		set_segmdesc(gdt + 1004, 64 * 1024 - 1, (int)q, AR_DATA32_RW);   //Ó¦ÓÃ³ÌÐòÊý¾Ý¶Î
 		if (finfo->size >= 8 && strncmp(p + 4, "Hari", 4) == 0) //HariMainº¯Êý
 		{
 			p[0] = 0xe8;
@@ -309,8 +311,10 @@ int cmd_app(struct CONSOLE *cons, int *fat, char *cmdline)
 			p[4] = 0x00;
 			p[5] = 0xcb;
 		}
-		farcall(0, 1003 * 8); //ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		//farcall(0, 1003 * 8); //ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		start_app(0, 1003 * 8, 64 * 1024, 1004 * 8);
 		memman_free_4k(memman, (int)p, finfo->size);
+		memman_free_4k(memman, (int)q, 64 * 1024);
 		cons_newline(cons);
 		return 1;
 	}
