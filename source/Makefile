@@ -68,11 +68,21 @@ crack1.hrb : crack1.bim Makefile
 crack2.hrb : crack2.nas Makefile
 	$(NASK) crack2.nas crack2.hrb crack2.lst
 
+crack3.hrb : crack3.nas Makefile
+	$(NASK) crack3.nas crack3.hrb crack3.lst
+crack4.hrb : crack4.nas Makefile
+	$(NASK) crack4.nas crack4.hrb crack4.lst
+crack5.hrb : crack5.nas Makefile
+	$(NASK) crack5.nas crack5.hrb crack5.lst
+crack6.hrb : crack6.nas Makefile
+	$(NASK) crack6.nas crack6.hrb crack6.lst				
+
 vOS.sys: asmhead.bin bootpack.hrb Makefile
 	copy /B asmhead.bin+bootpack.hrb vOS.sys
 
-vOS.img : ipl.bin vOS.sys hello.hrb hello2.hrb Makefile \
-		hello.hrb hello2.hrb a.hrb hello3.hrb crack1.hrb crack2.hrb
+vOS.img : ipl.bin vOS.sys Makefile \
+		hello.hrb hello2.hrb a.hrb hello3.hrb \
+		crack1.hrb crack2.hrb crack3.hrb crack4.hrb crack5.hrb crack6.hrb
 	$(EDIMG)   imgin:../z_tools/fdimg0at.tek \
 		wbinimg src:ipl.bin len:512 from:0 to:0 \
 		copy from:vOS.sys to:@: \
@@ -84,6 +94,10 @@ vOS.img : ipl.bin vOS.sys hello.hrb hello2.hrb Makefile \
 		copy from:hello3.hrb to:@: \
 		copy from:crack1.hrb to:@: \
 		copy from:crack2.hrb to:@: \
+		copy from:crack3.hrb to:@: \
+		copy from:crack4.hrb to:@: \
+		copy from:crack5.hrb to:@: \
+		copy from:crack6.hrb to:@: \
 		imgout:vOS.img
 
 # 一般规则
