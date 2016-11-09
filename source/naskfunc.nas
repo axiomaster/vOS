@@ -14,12 +14,12 @@
 		GLOBAL	_load_cr0, _store_cr0
 		GLOBAL	_load_tr
 		GLOBAL	_asm_inthandler20, _asm_inthandler21, _asm_inthandler27, _asm_inthandler2c ;中断程序,调用c语言中断处理程序
-		GLOBAL	_asm_inthandler0d
+		GLOBAL	_asm_inthandler0d, _asm_inthandler0c
 		GLOBAL  _memtest_sub
 		GLOBAL	_farjmp, _farcall
 		GLOBAL	_asm_hrb_api, _start_app
 		EXTERN	_inthandler20, _inthandler21, _inthandler27, _inthandler2c		        ;中断处理程序
-		EXTERN  _inthandler0d
+		EXTERN  _inthandler0d, _inthandler0c
 		EXTERN	_hrb_api
 [SECTION .text]
 
@@ -194,6 +194,26 @@ _asm_inthandler0d:
 		POP		ES
 		ADD		ESP,4			; INT 0x0d では、これが必要
 		IRETD
+
+_asm_inthandler0c:
+		STI
+		PUSH	ES
+		PUSH	DS
+		PUSHAD
+		MOV		EAX,ESP
+		PUSH	EAX
+		MOV		AX,SS
+		MOV		DS,AX
+		MOV		ES,AX
+		CALL	_inthandler0c
+		CMP		EAX,0
+		JNE		end_app
+		POP		EAX
+		POPAD
+		POP		DS
+		POP		ES
+		ADD		ESP,4			; INT 0x0c でも、これが必要
+		IRETD	
 
 _memtest_sub:	; unsigned int memtest_sub(unsigned int start, unsigned int end)
 		PUSH	EDI						; （EBX, ESI, EDI も使いたいので）

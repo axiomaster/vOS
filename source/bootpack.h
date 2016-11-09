@@ -21,6 +21,7 @@ void load_idtr(int limit, int addr);
 int load_cr0(void);
 void store_cr0(int cr0);
 void load_tr(int tr);  //tr寄存器
+void asm_inthandler0c(void); //cpu异常
 void asm_inthandler0d(void); //cpu异常
 void asm_inthandler20(void); //计时器中断
 void asm_inthandler21(void);
@@ -283,6 +284,7 @@ void cmd_type(struct CONSOLE *cons, int *fat, char *cmdline);
 int cmd_app(struct CONSOLE *cons, int *fat, char *cmdline);
 int hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int eax);
 int inthandler0d(int *esp);
+int inthandler0c(int *esp);
 
 //file.c
 struct FILEINFO //32字节
