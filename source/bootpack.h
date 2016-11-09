@@ -21,6 +21,7 @@ void load_idtr(int limit, int addr);
 int load_cr0(void);
 void store_cr0(int cr0);
 void load_tr(int tr);  //tr寄存器
+void asm_inthandler0d(void); //cpu异常
 void asm_inthandler20(void); //计时器中断
 void asm_inthandler21(void);
 void asm_inthandler27(void);
@@ -29,7 +30,7 @@ unsigned int memtest_sub(unsigned int start, unsigned int end);
 void farjmp(int eip, int cs);
 void farcall(int eip, int cs);
 void asm_hrb_api(void);
-void start_app(int eip, int cs, int esp, int ds);
+void start_app(int eip, int cs, int esp, int ds, int *tss_esp0);
 
 // fifo.c
 struct FIFO32 {
@@ -281,6 +282,7 @@ void cmd_dir(struct CONSOLE *cons);
 void cmd_type(struct CONSOLE *cons, int *fat, char *cmdline);
 int cmd_app(struct CONSOLE *cons, int *fat, char *cmdline);
 void hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int eax);
+int inthandler0d(int *esp);
 
 //file.c
 struct FILEINFO //32字节

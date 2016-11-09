@@ -60,16 +60,19 @@ hello3.hrb : hello3.bim Makefile
 	$(BIM2HRB) hello3.bim hello3.hrb 0
 
 crack1.bim : crack1.obj Makefile
-	$(OBJ2BIM) @$(RULEFILE) out:crack1.bim map:crack1.map crack1.obj
+	$(OBJ2BIM) @$(RULEFILE) out:crack1.bim map:crack1.map crack1.obj a_nask.obj
 
 crack1.hrb : crack1.bim Makefile
 	$(BIM2HRB) crack1.bim crack1.hrb 0
+
+crack2.hrb : crack2.nas Makefile
+	$(NASK) crack2.nas crack2.hrb crack2.lst
 
 vOS.sys: asmhead.bin bootpack.hrb Makefile
 	copy /B asmhead.bin+bootpack.hrb vOS.sys
 
 vOS.img : ipl.bin vOS.sys hello.hrb hello2.hrb Makefile \
-		hello.hrb hello2.hrb a.hrb hello3.hrb crack1.hrb
+		hello.hrb hello2.hrb a.hrb hello3.hrb crack1.hrb crack2.hrb
 	$(EDIMG)   imgin:../z_tools/fdimg0at.tek \
 		wbinimg src:ipl.bin len:512 from:0 to:0 \
 		copy from:vOS.sys to:@: \
@@ -80,6 +83,7 @@ vOS.img : ipl.bin vOS.sys hello.hrb hello2.hrb Makefile \
 		copy from:a.hrb to:@: \
 		copy from:hello3.hrb to:@: \
 		copy from:crack1.hrb to:@: \
+		copy from:crack2.hrb to:@: \
 		imgout:vOS.img
 
 # 一般规则
@@ -107,12 +111,11 @@ clean :
 	-$(DEL) *.bin
 	-$(DEL) *.lst
 	-$(DEL) *.obj
-	-$(DEL) bootpack.map
-	-$(DEL) bootpack.bim
-	-$(DEL) bootpack.hrb
+	-$(DEL) *.map
+	-$(DEL) *.bim
+	-$(DEL) *.hrb
 	-$(DEL) vOS.sys
 
 src_only :
 	$(MAKE) clean
 	-$(DEL) vOS.img    
-	-$(DEL) *.hrb
