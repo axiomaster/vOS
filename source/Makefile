@@ -88,13 +88,19 @@ bug3.bim : bug3.obj Makefile
 bug3.hrb : bug3.bim Makefile
 	$(BIM2HRB) bug3.bim bug3.hrb 0
 
+winhelo2.bim : winhelo2.obj a_nask.obj Makefile
+	$(OBJ2BIM) @$(RULEFILE) out:winhelo2.bim stack:1k map:winhelo2.map \
+		winhelo2.obj a_nask.obj
+winhelo2.hrb : winhelo2.bim Makefile
+	$(BIM2HRB) winhelo2.bim winhelo2.hrb 0
+
 vOS.sys: asmhead.bin bootpack.hrb Makefile
 	copy /B asmhead.bin+bootpack.hrb vOS.sys
 
 vOS.img : ipl.bin vOS.sys Makefile \
 		a.hrb hello.hrb hello2.hrb hello3.hrb hello4.hrb \
 		crack1.hrb crack2.hrb crack3.hrb crack4.hrb crack5.hrb crack6.hrb \
-		bug1.hrb bug2.hrb bug3.hrb
+		bug1.hrb bug2.hrb bug3.hrb  winhelo2.hrb
 	$(EDIMG)   imgin:../z_tools/fdimg0at.tek \
 		wbinimg src:ipl.bin len:512 from:0 to:0 \
 		copy from:vOS.sys to:@: \
@@ -114,6 +120,7 @@ vOS.img : ipl.bin vOS.sys Makefile \
 		copy from:bug1.hrb to:@: \
 		copy from:bug2.hrb to:@: \
 		copy from:bug3.hrb to:@: \
+		copy from:winhelo2.hrb to:@: \
 		imgout:vOS.img
 
 # 一般规则
