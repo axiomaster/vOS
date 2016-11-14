@@ -4,7 +4,6 @@
 
 void console_task(struct SHEET *sheet, unsigned int memtotal)
 {
-	struct TIMER *timer;
 	struct TASK *task = task_now();
 	struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
 	int i, fifobuf[128], *fat = (int *)memman_alloc_4k(memman, 4 * 2880);
@@ -17,9 +16,9 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 	*((int *)0x0fec) = (int)&cons; //×¼±¸µØÖ·£¬ÓÃÓÚasm_cons_putchar
 
 	fifo32_init(&task->fifo, 128, fifobuf, task);
-	timer = timer_alloc();
-	timer_init(timer, &task->fifo, 1);
-	timer_settime(timer, 50);
+	cons.timer = timer_alloc();
+	timer_init(cons.timer, &task->fifo, 1);
+	timer_settime(cons.timer, 50);
 	file_readfat(fat, (unsigned char *)(ADR_DISKIMG + 0x000200));
 
 	cons_putchar(&cons, '>', 1);
@@ -35,16 +34,16 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 			io_sti();
 			if (i <= 1) { // ï¿½ï¿½ï¿½ï¿½ 
 				if (i != 0) {
-					timer_init(timer, &task->fifo, 0); // ï¿½ï¿½0
+					timer_init(cons.timer, &task->fifo, 0); // ï¿½ï¿½0
 					if (cons.cur_c >= 0)
 						cons.cur_c = COL8_FFFFFF;
 				}
 				else {
-					timer_init(timer, &task->fifo, 1); // ï¿½ï¿½1
+					timer_init(cons.timer, &task->fifo, 1); // ï¿½ï¿½1
 					if (cons.cur_c >= 0)
 						cons.cur_c = COL8_000000;
 				}
-				timer_settime(timer, 50);
+				timer_settime(cons.timer, 50);
 			}
 			if (i == 2) { //ï¿½ï¿½ï¿½ê¿ªï¿½ï¿½
 				cons.cur_c = COL8_FFFFFF;
@@ -319,7 +318,7 @@ int cmd_app(struct CONSOLE *cons, int *fat, char *cmdline)
 			for (i = 0; i < MAX_SHEETS; i++) {
 				sht = &(shtctl->sheets0[i]);
 				if (sht->flags != 0 && sht->task == task) {
-					sheet_free(sht);
+					sheet_free(sht);	/* ¹Ø±Õ */
 				}
 			}
 			memman_free_4k(memman, (int)q, segsiz);
@@ -332,57 +331,6 @@ int cmd_app(struct CONSOLE *cons, int *fat, char *cmdline)
 		return 1;
 	}
 	return 0;
-}
-
-void hrb_api_linewin(struct SHEET *sht, int x0, int y0, int x1, int y1, int col)
-{
-	int i, x, y, len, dx, dy;
-	dx = x1 - x0;
-	dy = y1 - y0;
-	x = x0 << 10;
-	y = y0 << 10;
-	if (dx < 0) {
-		dx = -dx;
-	}
-	if (dy < 0) {
-		dy = -dy;
-	}
-	if (dx >= dy) {
-		len = dx + 1;
-		if (x0 > x1) {
-			dx = -1024;
-		}
-		else {
-			dx = 1024;
-		}
-		if (y0 <= y1) {
-			dy = ((y1 - y0 + 1) << 10) / len;
-		}
-		else {
-			dy = ((y1 - y0 - 1) << 10) / len;
-		}
-	}
-	else {
-		len = dy + 1;
-		if (y0 > y1) {
-			dy = -1024;
-		}
-		else {
-			dy = 1024;
-		}
-		if (x0 <= x1) {
-			dx = ((x1 - x0 + 1) << 10) / len;
-		}
-		else {
-			dx = ((x1 - x0 - 1) << 10) / len;
-		}
-	}
-	for (i = 0; i < len; i++) {
-		sht->buf[(y >> 10)*sht->bxsize + (x >> 10)] = col;
-		x += dx;
-		y += dy;
-	}
-	return;
 }
 
 int hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int eax)
@@ -457,7 +405,7 @@ int hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int e
 		sheet_refresh(sht, eax, ecx, esi, edi);
 	}
 	else if (edx == 13) {
-		sht = (struct SHEET *)(ebx & 0xfffffffe);
+		sht = (struct SHEET *) (ebx & 0xfffffffe);
 		hrb_api_linewin(sht, eax, ecx, esi, edi, ebp);
 		if ((ebx & 1) == 0) {
 			sheet_refresh(sht, eax, ecx, esi + 1, edi + 1);
@@ -520,4 +468,59 @@ int inthandler0c(int *esp)
 	sprintf(s, "EIP = %08X\n", esp[11]);
 	cons_putstr0(cons, s);
 	return &(task->tss.esp0); /* Ç¿ÖÆ½áÊø³ÌÐò */
+}
+
+
+void hrb_api_linewin(struct SHEET *sht, int x0, int y0, int x1, int y1, int col)
+{
+	int i, x, y, len, dx, dy;
+
+	dx = x1 - x0;
+	dy = y1 - y0;
+	x = x0 << 10;
+	y = y0 << 10;
+	if (dx < 0) {
+		dx = -dx;
+	}
+	if (dy < 0) {
+		dy = -dy;
+	}
+	if (dx >= dy) {
+		len = dx + 1;
+		if (x0 > x1) {
+			dx = -1024;
+		}
+		else {
+			dx = 1024;
+		}
+		if (y0 <= y1) {
+			dy = ((y1 - y0 + 1) << 10) / len;
+		}
+		else {
+			dy = ((y1 - y0 - 1) << 10) / len;
+		}
+	}
+	else {
+		len = dy + 1;
+		if (y0 > y1) {
+			dy = -1024;
+		}
+		else {
+			dy = 1024;
+		}
+		if (x0 <= x1) {
+			dx = ((x1 - x0 + 1) << 10) / len;
+		}
+		else {
+			dx = ((x1 - x0 - 1) << 10) / len;
+		}
+	}
+
+	for (i = 0; i < len; i++) {
+		sht->buf[(y >> 10) * sht->bxsize + (x >> 10)] = col;
+		x += dx;
+		y += dy;
+	}
+
+	return;
 }

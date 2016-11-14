@@ -6,13 +6,13 @@
 		GLOBAL	_api_putchar
 		GLOBAL	_api_putstr0
 		GLOBAL	_api_end
-		GLOBAL  _api_openwin ;int api_openwin(char *buf, int xsiz, int ysiz, int col_inv, char *title)
+		GLOBAL  _api_openwin	;int api_openwin(char *buf, int xsiz, int ysiz, int col_inv, char *title)
 		GLOBAL	_api_putstrwin
 		GLOBAL	_api_boxfilwin
 		GLOBAL  _api_initmalloc
 		GLOBAL  _api_malloc
 		GLOBAL	_api_free
-		GLOBAL	_api_point ; void_api_point(int win, int x, int y, int col);
+		GLOBAL	_api_point		;void_api_point(int win, int x, int y, int col);
 		GLOBAL	_api_refreshwin
 		GLOBAL	_api_linewin		;
 		GLOBAL	_api_closewin
@@ -122,6 +122,7 @@ _api_free:			; void api_free(char *addr, int size);
 		INT		0x40
 		POP		EBX
 		RET
+
 
 _api_point:		; void api_point(int win, int x, int y, int col);
 		PUSH	EDI

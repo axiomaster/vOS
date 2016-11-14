@@ -86,15 +86,20 @@ bug3.bim : bug3.obj Makefile
 bug3.hrb : bug3.bim Makefile
 	$(BIM2HRB) bug3.bim bug3.hrb 0
 
+stars.bim : stars.obj a_nask.obj Makefile
+	$(OBJ2BIM) @$(RULEFILE) out:stars.bim stack:1k map:stars.map stars.obj a_nask.obj
+stars.hrb : stars.bim Makefile
+	$(BIM2HRB) stars.bim stars.hrb 48k
+
 walk.bim : walk.obj a_nask.obj Makefile
 	$(OBJ2BIM) @$(RULEFILE) out:walk.bim stack:1k map:walk.map walk.obj a_nask.obj
 walk.hrb : walk.bim Makefile
-	$(BIM2HRB) walk.bim walk.hrb 0
+	$(BIM2HRB) walk.bim walk.hrb 48k
 
 lines.bim : lines.obj a_nask.obj Makefile
 	$(OBJ2BIM) @$(RULEFILE) out:lines.bim stack:1k map:lines.map lines.obj a_nask.obj
 lines.hrb : lines.bim Makefile
-	$(BIM2HRB) lines.bim lines.hrb 47k
+	$(BIM2HRB) lines.bim lines.hrb 48k
 
 vOS.sys: asmhead.bin bootpack.hrb Makefile
 	copy /B asmhead.bin+bootpack.hrb vOS.sys
@@ -102,7 +107,7 @@ vOS.sys: asmhead.bin bootpack.hrb Makefile
 vOS.img : ipl.bin vOS.sys Makefile \
 		a.hrb hello.hrb hello2.hrb hello3.hrb hello4.hrb \
 		crack1.hrb crack2.hrb crack3.hrb crack4.hrb crack5.hrb crack6.hrb \
-		bug1.hrb bug2.hrb bug3.hrb  walk.hrb lines.hrb
+		bug1.hrb bug2.hrb bug3.hrb  walk.hrb lines.hrb stars.hrb
 	$(EDIMG)   imgin:../z_tools/fdimg0at.tek \
 		wbinimg src:ipl.bin len:512 from:0 to:0 \
 		copy from:vOS.sys to:@: \
@@ -124,6 +129,7 @@ vOS.img : ipl.bin vOS.sys Makefile \
 		copy from:bug3.hrb to:@: \
 		copy from:walk.hrb to:@: \
 		copy from:lines.hrb to:@: \
+		copy from:stars.hrb to:@: \
 		imgout:vOS.img
 
 # 一般规则
