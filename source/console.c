@@ -278,6 +278,8 @@ int cmd_app(struct CONSOLE *cons, int *fat, char *cmdline)
 	struct TASK *task = task_now();
 	int i;
 	int segsiz, datsiz, esp, dathrb;
+	struct SHTCTL *shtctl;
+	struct SHEET *sht;
 
 	//根据命令行生成文件
 	for (i = 0; i < 13; i++) {
@@ -313,6 +315,13 @@ int cmd_app(struct CONSOLE *cons, int *fat, char *cmdline)
 				q[esp + i] = p[dathrb + i];
 			}
 			start_app(0x1b, 1003 * 8, esp, 1004 * 8, &(task->tss.esp0));
+			shtctl = (struct SHTCTL *) *((int *)0x0fe4);
+			for (i = 0; i < MAX_SHEETS; i++) {
+				sht = &(shtctl->sheets0[i]);
+				if (sht->flags != 0 && sht->task == task) {
+					sheet_free(sht);
+				}
+			}
 			memman_free_4k(memman, (int)q, segsiz);
 		}
 		else {
@@ -384,6 +393,7 @@ int hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int e
 	struct SHTCTL *shtctl = (struct SHTCTL *) *((int *)0x0fe4); //
 	struct SHEET *sht;
 	int *reg = &eax + 1;
+	int i;
 	//
 	//
 
@@ -401,6 +411,7 @@ int hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int e
 	}
 	else if (edx == 5) {
 		sht = sheet_alloc(shtctl);
+		sht->task = task;
 		sheet_setbuf(sht, (char *)ebx + ds_base, esi, edi, eax);
 		make_window8((char *)ebx + ds_base, esi, edi, (char *)ecx + ds_base, 0);
 		sheet_slide(sht, 100, 50);
@@ -454,6 +465,37 @@ int hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int e
 	}
 	else if (edx == 14) {
 		sheet_free((struct SHEET *)ebx);
+	}
+	else if (edx == 15) {
+		for (;;) {
+			io_cli();
+			if (fifo32_status(&task->fifo) == 0) {
+				if (eax != 0) {
+					task_sleep(task);
+				}
+				else {
+					io_sti();
+					reg[7] = -1;
+					return 0;
+				}
+			}
+			i = fifo32_get(&task->fifo);
+			io_sti();
+			if (i <= 1) {
+				timer_init(cons->timer, &task->fifo, 1); //
+				timer_settime(cons->timer, 50);
+			}
+			if (i == 2) {
+				cons->cur_c = COL8_FFFFFF;
+			}
+			if (i == 3) {
+				cons->cur_c = -1;
+			}
+			if (256 <= i&&i <= 511) {
+				reg[7] = i - 256;
+				return 0;
+			}
+		}
 	}
 	return 0;
 }

@@ -164,6 +164,7 @@ struct SHEET {
 	int flags; //是否使用
 
 	struct SHTCTL *ctl;
+	struct TASK *task;
 };
 
 struct SHTCTL //管理图层
@@ -271,6 +272,7 @@ struct CONSOLE
 {
 	struct SHEET *sht;
 	int cur_x, cur_y, cur_c;
+	struct TIMER *timer;
 };
 void console_task(struct SHEET *sheet, unsigned int memtotal);
 void cons_putchar(struct CONSOLE *cons, int chr, char move);

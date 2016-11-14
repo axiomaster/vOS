@@ -16,6 +16,7 @@
 		GLOBAL	_api_refreshwin
 		GLOBAL	_api_linewin		;
 		GLOBAL	_api_closewin
+		GLOBAL	_api_getkey
 
 [SECTION .text]
 
@@ -103,34 +104,34 @@ _api_initmalloc:
 		POP		EBX
 		RET
 
-_api_malloc:
+_api_malloc:		; char *api_malloc(int size);
 		PUSH	EBX
-		MOV		EDX, 9
-		MOV		EBX, [CS:0x0020]
-		MOV		ECX, [ESP+8]
+		MOV		EDX,9
+		MOV		EBX,[CS:0x0020]
+		MOV		ECX,[ESP+8]			; size
 		INT		0x40
 		POP		EBX
 		RET
 
-_api_free:
+_api_free:			; void api_free(char *addr, int size);
 		PUSH	EBX
 		MOV		EDX,10
 		MOV		EBX,[CS:0x0020]
-		MOV		EAX,[ESP+8]
-		MOV		ECX,[ESP+12]
+		MOV		EAX,[ESP+ 8]		; addr
+		MOV		ECX,[ESP+12]		; size
 		INT		0x40
 		POP		EBX
 		RET
 
-_api_point:
+_api_point:		; void api_point(int win, int x, int y, int col);
 		PUSH	EDI
 		PUSH	ESI
 		PUSH	EBX
 		MOV		EDX,11
-		MOV		EBX,[ESP+16]
-		MOV		ESI,[ESP+20]
-		MOV		EDI,[ESP+24]
-		MOV		EAX,[ESP+28]
+		MOV		EBX,[ESP+16]	; win
+		MOV		ESI,[ESP+20]	; x
+		MOV		EDI,[ESP+24]	; y
+		MOV		EAX,[ESP+28]	; col
 		INT		0x40
 		POP		EBX
 		POP		ESI
@@ -172,10 +173,16 @@ _api_linewin:		; void api_linewin(int win, int x0, int y0, int x1, int y1, int c
 		POP		EDI
 		RET
 
-_api_closewin:
+_api_closewin:		; void api_closewin(int win);
 		PUSH	EBX
 		MOV		EDX,14
-		MOV		EBX,[ESP+8]
+		MOV		EBX,[ESP+8]	; win
 		INT		0x40
 		POP		EBX
+		RET
+
+_api_getkey:		; int api_getkey(int mode);
+		MOV		EDX,15
+		MOV		EAX,[ESP+4]	; mode
+		INT		0x40
 		RET
