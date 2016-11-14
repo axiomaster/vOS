@@ -37,13 +37,11 @@ hankaku.obj : hankaku.bin Makefile
 bootpack.bim : $(OBJS_BOOTPACK) Makefile
 	$(OBJ2BIM) @$(RULEFILE) out:bootpack.bim stack:3136k map:bootpack.map \
 		$(OBJS_BOOTPACK)
-#
 bootpack.hrb : bootpack.bim Makefile
 	$(BIM2HRB) bootpack.bim bootpack.hrb 0
 
 a.bim : a.obj a_nask.obj Makefile
 	$(OBJ2BIM) @$(RULEFILE) out:a.bim map:a.map a.obj a_nask.obj
-
 a.hrb : a.bim Makefile
 	$(BIM2HRB) a.bim a.hrb 0
 
@@ -94,13 +92,18 @@ winhelo3.bim : winhelo3.obj a_nask.obj Makefile
 winhelo3.hrb : winhelo3.bim Makefile
 	$(BIM2HRB) winhelo3.bim winhelo3.hrb 0
 
+stars.bim : stars.obj a_nask.obj Makefile
+	$(OBJ2BIM) @$(RULEFILE) out:stars.bim stack:1k map:stars.map stars.obj a_nask.obj
+stars.hrb : stars.bim Makefile
+	$(BIM2HRB) stars.bim stars.hrb 47k
+
 vOS.sys: asmhead.bin bootpack.hrb Makefile
 	copy /B asmhead.bin+bootpack.hrb vOS.sys
 
 vOS.img : ipl.bin vOS.sys Makefile \
 		a.hrb hello.hrb hello2.hrb hello3.hrb hello4.hrb \
 		crack1.hrb crack2.hrb crack3.hrb crack4.hrb crack5.hrb crack6.hrb \
-		bug1.hrb bug2.hrb bug3.hrb  winhelo3.hrb
+		bug1.hrb bug2.hrb bug3.hrb  winhelo3.hrb stars.hrb
 	$(EDIMG)   imgin:../z_tools/fdimg0at.tek \
 		wbinimg src:ipl.bin len:512 from:0 to:0 \
 		copy from:vOS.sys to:@: \
@@ -121,6 +124,7 @@ vOS.img : ipl.bin vOS.sys Makefile \
 		copy from:bug2.hrb to:@: \
 		copy from:bug3.hrb to:@: \
 		copy from:winhelo3.hrb to:@: \
+		copy from:stars.hrb to:@: \
 		imgout:vOS.img
 
 # 一般规则
@@ -138,11 +142,11 @@ img :
 run :
 	$(MAKE) img
 	copy vOS.img ..\z_tools\qemu\fdimage0.bin
-	$(MAKE) -C ../z_tools/qemu    
+	$(MAKE) -C ../z_tools/qemu
 
 install :
 	$(MAKE) img
-	$(IMGTOL) w a: haribote.img	      
+	$(IMGTOL) w a: haribote.img
 
 clean :
 	-$(DEL) *.bin
@@ -155,4 +159,4 @@ clean :
 
 src_only :
 	$(MAKE) clean
-	-$(DEL) vOS.img    
+	-$(DEL) vOS.img
