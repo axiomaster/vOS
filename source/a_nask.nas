@@ -15,6 +15,7 @@
 		GLOBAL	_api_point ; void_api_point(int win, int x, int y, int col);
 		GLOBAL	_api_refreshwin
 		GLOBAL	_api_linewin		;
+		GLOBAL	_api_closewin
 
 [SECTION .text]
 
@@ -169,4 +170,12 @@ _api_linewin:		; void api_linewin(int win, int x0, int y0, int x1, int y1, int c
 		POP		EBP
 		POP		ESI
 		POP		EDI
+		RET
+
+_api_closewin:
+		PUSH	EBX
+		MOV		EDX,14
+		MOV		EBX,[ESP+8]
+		INT		0x40
+		POP		EBX
 		RET
