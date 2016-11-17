@@ -1,11 +1,11 @@
 ; naskfunc
 ; TAB=4
 
-[FORMAT "WCOFF"]
-[INSTRSET "i486p"]
-[BITS 32]
-[FILE "naskfunc.nas"]
-		; å…¨å±€å‡½æ•°ï¼Œ æ±‡ç¼–å®ç°
+[FORMAT "WCOFF"]				; ƒIƒuƒWƒFƒNƒgƒtƒ@ƒCƒ‹‚ğì‚éƒ‚[ƒh	
+[INSTRSET "i486p"]				; 486‚Ì–½—ß‚Ü‚Åg‚¢‚½‚¢‚Æ‚¢‚¤‹Lq
+[BITS 32]						; 32ƒrƒbƒgƒ‚[ƒh—p‚Ì‹@ŠBŒê‚ğì‚ç‚¹‚é
+[FILE "naskfunc.nas"]			; ƒ\[ƒXƒtƒ@ƒCƒ‹–¼î•ñ
+
 		GLOBAL	_io_hlt, _io_cli, _io_sti, _io_stihlt
 		GLOBAL	_io_in8,  _io_in16,  _io_in32
 		GLOBAL	_io_out8, _io_out16, _io_out32
@@ -13,14 +13,17 @@
 		GLOBAL	_load_gdtr, _load_idtr
 		GLOBAL	_load_cr0, _store_cr0
 		GLOBAL	_load_tr
-		GLOBAL	_asm_inthandler20, _asm_inthandler21, _asm_inthandler27, _asm_inthandler2c ;ä¸­æ–­ç¨‹åº,è°ƒç”¨cè¯­è¨€ä¸­æ–­å¤„ç†ç¨‹åº
-		GLOBAL	_asm_inthandler0d, _asm_inthandler0c
-		GLOBAL  _asm_end_app, _memtest_sub
+		GLOBAL	_asm_inthandler20, _asm_inthandler21
+		GLOBAL	_asm_inthandler27, _asm_inthandler2c
+		GLOBAL	_asm_inthandler0c, _asm_inthandler0d
+		GLOBAL	_asm_end_app, _memtest_sub
 		GLOBAL	_farjmp, _farcall
 		GLOBAL	_asm_hrb_api, _start_app
-		EXTERN	_inthandler20, _inthandler21, _inthandler27, _inthandler2c		        ;ä¸­æ–­å¤„ç†ç¨‹åº
-		EXTERN  _inthandler0d, _inthandler0c
+		EXTERN	_inthandler20, _inthandler21
+		EXTERN	_inthandler27, _inthandler2c
+		EXTERN	_inthandler0c, _inthandler0d
 		EXTERN	_hrb_api
+
 [SECTION .text]
 
 _io_hlt:	; void io_hlt(void);
@@ -30,7 +33,7 @@ _io_hlt:	; void io_hlt(void);
 _io_cli:	; void io_cli(void);
 		CLI
 		RET
- 
+
 _io_sti:	; void io_sti(void);
 		STI
 		RET
@@ -76,14 +79,14 @@ _io_out32:	; void io_out32(int port, int data);
 		RET
 
 _io_load_eflags:	; int io_load_eflags(void);
-		PUSHFD		; PUSH EFLAGS double words
+		PUSHFD		; PUSH EFLAGS ‚Æ‚¢‚¤ˆÓ–¡
 		POP		EAX
 		RET
 
 _io_store_eflags:	; void io_store_eflags(int eflags);
 		MOV		EAX,[ESP+4]
 		PUSH	EAX
-		POPFD		; POP EFLAGS double words
+		POPFD		; POP EFLAGS ‚Æ‚¢‚¤ˆÓ–¡
 		RET
 
 _load_gdtr:		; void load_gdtr(int limit, int addr);
@@ -98,11 +101,11 @@ _load_idtr:		; void load_idtr(int limit, int addr);
 		LIDT	[ESP+6]
 		RET
 
-_load_cr0:
+_load_cr0:		; int load_cr0(void);
 		MOV		EAX,CR0
 		RET
 
-_store_cr0:
+_store_cr0:		; void store_cr0(int cr0);
 		MOV		EAX,[ESP+4]
 		MOV		CR0,EAX
 		RET
@@ -175,26 +178,6 @@ _asm_inthandler2c:
 		POP		ES
 		IRETD
 
-_asm_inthandler0d:
-		STI
-		PUSH	ES
-		PUSH	DS
-		PUSHAD
-		MOV		EAX,ESP
-		PUSH	EAX
-		MOV		AX,SS
-		MOV		DS,AX
-		MOV		ES,AX
-		CALL	_inthandler0d
-		CMP		EAX,0		; ã“ã“ã ã‘é•ã†
-		JNE		_asm_end_app		; ã“ã“ã ã‘é•ã†
-		POP		EAX
-		POPAD
-		POP		DS
-		POP		ES
-		ADD		ESP,4			; INT 0x0d ã§ã¯ã€ã“ã‚ŒãŒå¿…è¦
-		IRETD
-
 _asm_inthandler0c:
 		STI
 		PUSH	ES
@@ -212,11 +195,31 @@ _asm_inthandler0c:
 		POPAD
 		POP		DS
 		POP		ES
-		ADD		ESP,4			; INT 0x0c ã§ã‚‚ã€ã“ã‚ŒãŒå¿…è¦
-		IRETD	
+		ADD		ESP,4			; INT 0x0c ‚Å‚àA‚±‚ê‚ª•K—v
+		IRETD
+
+_asm_inthandler0d:
+		STI
+		PUSH	ES
+		PUSH	DS
+		PUSHAD
+		MOV		EAX,ESP
+		PUSH	EAX
+		MOV		AX,SS
+		MOV		DS,AX
+		MOV		ES,AX
+		CALL	_inthandler0d
+		CMP		EAX,0			; ‚±‚±‚¾‚¯ˆá‚¤
+		JNE		_asm_end_app	; ‚±‚±‚¾‚¯ˆá‚¤
+		POP		EAX
+		POPAD
+		POP		DS
+		POP		ES
+		ADD		ESP,4			; INT 0x0d ‚Å‚ÍA‚±‚ê‚ª•K—v
+		IRETD
 
 _memtest_sub:	; unsigned int memtest_sub(unsigned int start, unsigned int end)
-		PUSH	EDI						; ï¼ˆEBX, ESI, EDI ã‚‚ä½¿ã„ãŸã„ã®ã§ï¼‰
+		PUSH	EDI						; iEBX, ESI, EDI ‚àg‚¢‚½‚¢‚Ì‚Åj
 		PUSH	ESI
 		PUSH	EBX
 		MOV		ESI,0xaa55aa55			; pat0 = 0xaa55aa55;
@@ -252,21 +255,21 @@ _farjmp:		; void farjmp(int eip, int cs);
 		JMP		FAR	[ESP+4]				; eip, cs
 		RET
 
-_farcall:		; void farcall(int eip, int cs)
-		CALL	FAR [ESP+4]	;
+_farcall:		; void farcall(int eip, int cs);
+		CALL	FAR	[ESP+4]				; eip, cs
 		RET
 
 _asm_hrb_api:
 		STI
 		PUSH	DS
 		PUSH	ES
-		PUSHAD		; ä¿å­˜ã®ãŸã‚ã®PUSH
-		PUSHAD		; hrb_apiã«ã‚ãŸã™ãŸã‚ã®PUSH
+		PUSHAD		; •Û‘¶‚Ì‚½‚ß‚ÌPUSH
+		PUSHAD		; hrb_api‚É‚í‚½‚·‚½‚ß‚ÌPUSH
 		MOV		AX,SS
-		MOV		DS,AX		; OSç”¨ã®ã‚»ã‚°ãƒ¡ãƒ³ãƒˆã‚’DSã¨ESã«ã‚‚å…¥ã‚Œã‚‹
+		MOV		DS,AX		; OS—p‚ÌƒZƒOƒƒ“ƒg‚ğDS‚ÆES‚É‚à“ü‚ê‚é
 		MOV		ES,AX
 		CALL	_hrb_api
-		CMP		EAX,0		; EAXãŒ0ã§ãªã‘ã‚Œã°ã‚¢ãƒ—ãƒªçµ‚äº†å‡¦ç†
+		CMP		EAX,0		; EAX‚ª0‚Å‚È‚¯‚ê‚ÎƒAƒvƒŠI—¹ˆ—
 		JNE		_asm_end_app
 		ADD		ESP,32
 		POPAD
@@ -274,30 +277,31 @@ _asm_hrb_api:
 		POP		DS
 		IRETD
 _asm_end_app:
-;	EAXã¯tss.esp0ã®ç•ªåœ°
+;	EAX‚Ítss.esp0‚Ì”Ô’n
 		MOV		ESP,[EAX]
-		MOV		DWORD [EAX+4], 0
+		MOV		DWORD [EAX+4],0
 		POPAD
-		RET					; cmd_appã¸å¸°ã‚‹
+		RET					; cmd_app‚Ö‹A‚é
 
 _start_app:		; void start_app(int eip, int cs, int esp, int ds, int *tss_esp0);
-		PUSHAD		; 32ãƒ“ãƒƒãƒˆãƒ¬ã‚¸ã‚¹ã‚¿ã‚’å…¨éƒ¨ä¿å­˜ã—ã¦ãŠã
-		MOV		EAX,[ESP+36]	; ã‚¢ãƒ—ãƒªç”¨ã®EIP
-		MOV		ECX,[ESP+40]	; ã‚¢ãƒ—ãƒªç”¨ã®CS
-		MOV		EDX,[ESP+44]	; ã‚¢ãƒ—ãƒªç”¨ã®ESP
-		MOV		EBX,[ESP+48]	; ã‚¢ãƒ—ãƒªç”¨ã®DS/SS
-		MOV		EBP,[ESP+52]	; tss.esp0ã®ç•ªåœ°
-		MOV		[EBP  ],ESP		; OSç”¨ã®ESPã‚’ä¿å­˜
-		MOV		[EBP+4],SS		; OSç”¨ã®SSã‚’ä¿å­˜
+		PUSHAD		; 32ƒrƒbƒgƒŒƒWƒXƒ^‚ğ‘S•”•Û‘¶‚µ‚Ä‚¨‚­
+		MOV		EAX,[ESP+36]	; ƒAƒvƒŠ—p‚ÌEIP
+		MOV		ECX,[ESP+40]	; ƒAƒvƒŠ—p‚ÌCS
+		MOV		EDX,[ESP+44]	; ƒAƒvƒŠ—p‚ÌESP
+		MOV		EBX,[ESP+48]	; ƒAƒvƒŠ—p‚ÌDS/SS
+		MOV		EBP,[ESP+52]	; tss.esp0‚Ì”Ô’n
+		MOV		[EBP  ],ESP		; OS—p‚ÌESP‚ğ•Û‘¶
+		MOV		[EBP+4],SS		; OS—p‚ÌSS‚ğ•Û‘¶
 		MOV		ES,BX
 		MOV		DS,BX
 		MOV		FS,BX
 		MOV		GS,BX
-;	ä»¥ä¸‹ã¯RETFã§ã‚¢ãƒ—ãƒªã«è¡Œã‹ã›ã‚‹ãŸã‚ã®ã‚¹ã‚¿ãƒƒã‚¯èª¿æ•´
-		OR		ECX,3			; ã‚¢ãƒ—ãƒªç”¨ã®ã‚»ã‚°ãƒ¡ãƒ³ãƒˆç•ªå·ã«3ã‚’ORã™ã‚‹
-		OR		EBX,3			; ã‚¢ãƒ—ãƒªç”¨ã®ã‚»ã‚°ãƒ¡ãƒ³ãƒˆç•ªå·ã«3ã‚’ORã™ã‚‹
-		PUSH	EBX				; ã‚¢ãƒ—ãƒªã®SS
-		PUSH	EDX				; ã‚¢ãƒ—ãƒªã®ESP
-		PUSH	ECX				; ã‚¢ãƒ—ãƒªã®CS
-		PUSH	EAX				; ã‚¢ãƒ—ãƒªã®EIP
+;	ˆÈ‰º‚ÍRETF‚ÅƒAƒvƒŠ‚És‚©‚¹‚é‚½‚ß‚ÌƒXƒ^ƒbƒN’²®
+		OR		ECX,3			; ƒAƒvƒŠ—p‚ÌƒZƒOƒƒ“ƒg”Ô†‚É3‚ğOR‚·‚é
+		OR		EBX,3			; ƒAƒvƒŠ—p‚ÌƒZƒOƒƒ“ƒg”Ô†‚É3‚ğOR‚·‚é
+		PUSH	EBX				; ƒAƒvƒŠ‚ÌSS
+		PUSH	EDX				; ƒAƒvƒŠ‚ÌESP
+		PUSH	ECX				; ƒAƒvƒŠ‚ÌCS
+		PUSH	EAX				; ƒAƒvƒŠ‚ÌEIP
 		RETF
+;	ƒAƒvƒŠ‚ªI—¹‚µ‚Ä‚à‚±‚±‚É‚Í—ˆ‚È‚¢

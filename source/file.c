@@ -1,13 +1,13 @@
+/* ファイル関係 */
+
 #include "bootpack.h"
 
-
-
-//ｽ簷ｹｴﾅﾅﾌﾖﾐｵﾄfat
 void file_readfat(int *fat, unsigned char *img)
+/* ディスクイメージ内のFATの圧縮をとく */
 {
-	int i, j;
+	int i, j = 0;
 	for (i = 0; i < 2880; i += 2) {
-		fat[i + 0] = (img[j + 0] | img[j + 1] << 8) & 0xfff;
+		fat[i + 0] = (img[j + 0]      | img[j + 1] << 8) & 0xfff;
 		fat[i + 1] = (img[j + 1] >> 4 | img[j + 2] << 4) & 0xfff;
 		j += 3;
 	}
@@ -43,16 +43,15 @@ struct FILEINFO *file_search(char *name, struct FILEINFO *finfo, int max)
 	}
 	j = 0;
 	for (i = 0; name[i] != 0; i++) {
-		if (j >= 11) { return 0;  } //ﾃｻﾓﾐﾕﾒｵｽ
+		if (j >= 11) { return 0; /* 見つからなかった */ }
 		if (name[i] == '.' && j <= 8) {
 			j = 8;
-		}
-		else {
+		} else {
 			s[j] = name[i];
 			if ('a' <= s[j] && s[j] <= 'z') {
-				//ﾐ｡ﾐｴﾗｪｻｻﾎｪｴｴ
+				/* 小文字は大文字に直す */
 				s[j] -= 0x20;
-			}
+			} 
 			j++;
 		}
 	}
@@ -66,10 +65,10 @@ struct FILEINFO *file_search(char *name, struct FILEINFO *finfo, int max)
 					goto next;
 				}
 			}
-			return finfo + i;  //ﾕﾒｵｽ
+			return finfo + i; /* ファイルが見つかった */
 		}
-	next:
+next:
 		i++;
 	}
-	return 0; //ﾃｻﾓﾐﾕﾒｵｽ
+	return 0; /* 見つからなかった */
 }

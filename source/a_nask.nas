@@ -1,20 +1,20 @@
-[FORMAT "WCOFF"]				; 生成对象文件的格式
-[INSTRSET "i486p"]				; 486兼容指令集
-[BITS 32]						; 32位机器语言
-[FILE "a_nask.nas"]				; 源文件名
+[FORMAT "WCOFF"]
+[INSTRSET "i486p"]
+[BITS 32]
+[FILE "a_nask.nas"]
 
 		GLOBAL	_api_putchar
 		GLOBAL	_api_putstr0
 		GLOBAL	_api_end
-		GLOBAL  _api_openwin	;int api_openwin(char *buf, int xsiz, int ysiz, int col_inv, char *title)
+		GLOBAL	_api_openwin
 		GLOBAL	_api_putstrwin
 		GLOBAL	_api_boxfilwin
-		GLOBAL  _api_initmalloc
-		GLOBAL  _api_malloc
+		GLOBAL	_api_initmalloc
+		GLOBAL	_api_malloc
 		GLOBAL	_api_free
-		GLOBAL	_api_point		;void_api_point(int win, int x, int y, int col);
+		GLOBAL	_api_point
 		GLOBAL	_api_refreshwin
-		GLOBAL	_api_linewin		;
+		GLOBAL	_api_linewin
 		GLOBAL	_api_closewin
 		GLOBAL	_api_getkey
 
@@ -38,16 +38,16 @@ _api_end:	; void api_end(void);
 		MOV		EDX,4
 		INT		0x40
 
-_api_openwin: ;int api_openwin(char *buf, int xsiz, int ysiz, int col_inv, char *title)
+_api_openwin:	; int api_openwin(char *buf, int xsiz, int ysiz, int col_inv, char *title);
 		PUSH	EDI
 		PUSH	ESI
 		PUSH	EBX
-		MOV		EDX, 5
-		MOV		EBX, [ESP+16]
-		MOV		ESI, [ESP+20]
-		MOV		EDI, [ESP+24]
-		MOV		EAX, [ESP+28]
-		MOV		ECX, [ESP+32]
+		MOV		EDX,5
+		MOV		EBX,[ESP+16]	; buf
+		MOV		ESI,[ESP+20]	; xsiz
+		MOV		EDI,[ESP+24]	; ysiz
+		MOV		EAX,[ESP+28]	; col_inv
+		MOV		ECX,[ESP+32]	; title
 		INT		0x40
 		POP		EBX
 		POP		ESI
@@ -92,14 +92,14 @@ _api_boxfilwin:	; void api_boxfilwin(int win, int x0, int y0, int x1, int y1, in
 		POP		EDI
 		RET
 
-_api_initmalloc:
+_api_initmalloc:	; void api_initmalloc(void);
 		PUSH	EBX
-		MOV		EDX, 8
-		MOV		EBX, [CS:0x0020]
-		MOV		EAX, EBX
-		ADD		EAX, 32*1024
-		MOV		ECX, [CS:0x0000]
-		SUB		ECX, EAX
+		MOV		EDX,8
+		MOV		EBX,[CS:0x0020]		; malloc椞堟偺斣抧
+		MOV		EAX,EBX
+		ADD		EAX,32*1024			; 32KB傪懌偡
+		MOV		ECX,[CS:0x0000]		; 僨乕僞僙僌儊儞僩偺戝偒偝
+		SUB		ECX,EAX
 		INT		0x40
 		POP		EBX
 		RET
@@ -122,7 +122,6 @@ _api_free:			; void api_free(char *addr, int size);
 		INT		0x40
 		POP		EBX
 		RET
-
 
 _api_point:		; void api_point(int win, int x, int y, int col);
 		PUSH	EDI
@@ -187,3 +186,4 @@ _api_getkey:		; int api_getkey(int mode);
 		MOV		EAX,[ESP+4]	; mode
 		INT		0x40
 		RET
+

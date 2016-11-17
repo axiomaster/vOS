@@ -1,42 +1,44 @@
-//
-// Created by lism on 2016/10/24.
-//
+/* ƒL[ƒ{[ƒhŠÖŒW */
+
 #include "bootpack.h"
 
 struct FIFO32 *keyfifo;
-int keydata0; //åç§»é‡
+int keydata0;
 
-void inthandler21(int *esp) //å¯¹åº”é”®ç›˜ä¸­æ–­
+void inthandler21(int *esp)
 {
 	int data;
-	io_out8(PIC0_OCW2, 0x61); //PICç›‘è§†IRQ1ä¸­æ–­
+	io_out8(PIC0_OCW2, 0x61);	/* IRQ-01ó•tŠ®—¹‚ğPIC‚É’Ê’m */
 	data = io_in8(PORT_KEYDAT);
 	fifo32_put(keyfifo, data + keydata0);
 	return;
 }
 
-#define PORT_KEYSTA             0x0064
-#define KEYSTA_SEND_NOTREADY    0x02
-#define KEYCMD_WRITE_MODE       0x60
-#define KBC_MODE                0x47
+#define PORT_KEYSTA				0x0064
+#define KEYSTA_SEND_NOTREADY	0x02
+#define KEYCMD_WRITE_MODE		0x60
+#define KBC_MODE				0x47
 
 void wait_KBC_sendready(void)
 {
+	/* ƒL[ƒ{[ƒhƒRƒ“ƒgƒ[ƒ‰‚ªƒf[ƒ^‘—M‰Â”\‚É‚È‚é‚Ì‚ğ‘Ò‚Â */
 	for (;;) {
 		if ((io_in8(PORT_KEYSTA) & KEYSTA_SEND_NOTREADY) == 0) {
 			break;
 		}
 	}
+	return;
 }
 
 void init_keyboard(struct FIFO32 *fifo, int data0)
 {
+	/* ‘‚«‚İæ‚ÌFIFOƒoƒbƒtƒ@‚ğ‹L‰¯ */
 	keyfifo = fifo;
 	keydata0 = data0;
-
+	/* ƒL[ƒ{[ƒhƒRƒ“ƒgƒ[ƒ‰‚Ì‰Šú‰» */
 	wait_KBC_sendready();
 	io_out8(PORT_KEYCMD, KEYCMD_WRITE_MODE);
 	wait_KBC_sendready();
 	io_out8(PORT_KEYDAT, KBC_MODE);
+	return;
 }
-

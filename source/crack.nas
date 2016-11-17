@@ -1,7 +1,0 @@
-[INSTRSET "i486p"]
-[BITS 32]
-		MOV		EAX,1*8
-		MOV		DS,AX		; c
-		MOV		BYTE [0x102600], 0
-		INT		0x40
-		RET

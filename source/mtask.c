@@ -1,3 +1,5 @@
+/* 儅儖僠僞僗僋娭學 */
+
 #include "bootpack.h"
 
 struct TASKCTL *taskctl;
@@ -14,7 +16,7 @@ void task_add(struct TASK *task)
 	struct TASKLEVEL *tl = &taskctl->level[task->level];
 	tl->tasks[tl->running] = task;
 	tl->running++;
-	task->flags = 2;
+	task->flags = 2; /* 摦嶌拞 */
 	return;
 }
 
@@ -22,32 +24,40 @@ void task_remove(struct TASK *task)
 {
 	int i;
 	struct TASKLEVEL *tl = &taskctl->level[task->level];
+
+	/* task偑偳偙偵偄傞偐傪扵偡 */
 	for (i = 0; i < tl->running; i++) {
 		if (tl->tasks[i] == task) {
+			/* 偙偙偵偄偨 */
 			break;
 		}
 	}
+
 	tl->running--;
 	if (i < tl->now) {
-		tl->now--;
+		tl->now--; /* 偢傟傞偺偱丄偙傟傕偁傢偣偰偍偔 */
 	}
 	if (tl->now >= tl->running) {
+		/* now偑偍偐偟側抣偵側偭偰偄偨傜丄廋惓偡傞 */
 		tl->now = 0;
 	}
-	task->flags = 1;
+	task->flags = 1; /* 僗儕乕僾拞 */
+
+	/* 偢傜偟 */
 	for (; i < tl->running; i++) {
 		tl->tasks[i] = tl->tasks[i + 1];
 	}
+
 	return;
 }
 
-//任务切换时切换到哪个level
 void task_switchsub(void)
 {
 	int i;
+	/* 堦斣忋偺儗儀儖傪扵偡 */
 	for (i = 0; i < MAX_TASKLEVELS; i++) {
 		if (taskctl->level[i].running > 0) {
-			break;
+			break; /* 尒偮偐偭偨 */
 		}
 	}
 	taskctl->now_lv = i;
@@ -58,7 +68,7 @@ void task_switchsub(void)
 void task_idle(void)
 {
 	for (;;) {
-		io_hlt(); //放入最下层level，这样最下层level一直有任务，cpu空闲即会被执行
+		io_hlt();
 	}
 }
 
@@ -66,35 +76,32 @@ struct TASK *task_init(struct MEMMAN *memman)
 {
 	int i;
 	struct TASK *task, *idle;
-	struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)ADR_GDT;
-	taskctl = (struct TASKCTL *) memman_alloc_4k(memman, sizeof(struct TASKCTL));
+	struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *) ADR_GDT;
 
+	taskctl = (struct TASKCTL *) memman_alloc_4k(memman, sizeof (struct TASKCTL));
 	for (i = 0; i < MAX_TASKS; i++) {
 		taskctl->tasks0[i].flags = 0;
 		taskctl->tasks0[i].sel = (TASK_GDT0 + i) * 8;
-		set_segmdesc(gdt + TASK_GDT0 + i, 103, (int)&taskctl->tasks0[i].tss, AR_TSS32); //任务的TSS段
+		set_segmdesc(gdt + TASK_GDT0 + i, 103, (int) &taskctl->tasks0[i].tss, AR_TSS32);
 	}
-
 	for (i = 0; i < MAX_TASKLEVELS; i++) {
 		taskctl->level[i].running = 0;
 		taskctl->level[i].now = 0;
 	}
 
 	task = task_alloc();
-	task->flags = 2; //活动中
-	task->priority = 2; //0.02秒
-	task->level = 0;
+	task->flags = 2;	/* 摦嶌拞儅乕僋 */
+	task->priority = 2; /* 0.02昩 */
+	task->level = 0;	/* 嵟崅儗儀儖 */
 	task_add(task);
-	task_switchsub();
-
+	task_switchsub();	/* 儗儀儖愝掕 */
 	load_tr(task->sel);
 	task_timer = timer_alloc();
-	timer_settime(task_timer, task->priority); //根据任务优先级设定运行时间
+	timer_settime(task_timer, task->priority);
 
-	//idle
 	idle = task_alloc();
 	idle->tss.esp = memman_alloc_4k(memman, 64 * 1024) + 64 * 1024;
-	idle->tss.eip = (int)&task_idle;
+	idle->tss.eip = (int) &task_idle;
 	idle->tss.es = 1 * 8;
 	idle->tss.cs = 2 * 8;
 	idle->tss.ss = 1 * 8;
@@ -105,6 +112,7 @@ struct TASK *task_init(struct MEMMAN *memman)
 
 	return task;
 }
+
 struct TASK *task_alloc(void)
 {
 	int i;
@@ -112,9 +120,9 @@ struct TASK *task_alloc(void)
 	for (i = 0; i < MAX_TASKS; i++) {
 		if (taskctl->tasks0[i].flags == 0) {
 			task = &taskctl->tasks0[i];
-			task->flags = 1; /* 使用中 */
+			task->flags = 1; /* 巊梡拞儅乕僋 */
 			task->tss.eflags = 0x00000202; /* IF = 1; */
-			task->tss.eax = 0; /*  */
+			task->tss.eax = 0; /* 偲傝偁偊偢0偵偟偰偍偔偙偲偵偡傞 */
 			task->tss.ecx = 0;
 			task->tss.edx = 0;
 			task->tss.ebx = 0;
@@ -127,28 +135,49 @@ struct TASK *task_alloc(void)
 			task->tss.gs = 0;
 			task->tss.ldtr = 0;
 			task->tss.iomap = 0x40000000;
-			task->tss.ss0 = 0; //
+			task->tss.ss0 = 0;
 			return task;
 		}
 	}
-	return 0; //申请失败
+	return 0; /* 傕偆慡晹巊梡拞 */
 }
+
 void task_run(struct TASK *task, int level, int priority)
 {
 	if (level < 0) {
-		level = task->level;
+		level = task->level; /* 儗儀儖傪曄峏偟側偄 */
 	}
-	if (priority > 0) { //为0时，保持之前优先级
+	if (priority > 0) {
 		task->priority = priority;
 	}
-	if (task->flags == 2 && task->level != level) {
-		task_remove(task);
+
+	if (task->flags == 2 && task->level != level) { /* 摦嶌拞偺儗儀儖偺曄峏 */
+		task_remove(task); /* 偙傟傪幚峴偡傞偲flags偼1偵側傞偺偱壓偺if傕幚峴偝傟傞 */
 	}
-	if (task->flags != 2) { //从休眠状态唤醒
+	if (task->flags != 2) {
+		/* 僗儕乕僾偐傜婲偙偝傟傞応崌 */
 		task->level = level;
 		task_add(task);
 	}
-	taskctl->lv_change = 1;
+
+	taskctl->lv_change = 1; /* 師夞僞僗僋僗僀僢僠偺偲偒偵儗儀儖傪尒捈偡 */
+	return;
+}
+
+void task_sleep(struct TASK *task)
+{
+	struct TASK *now_task;
+	if (task->flags == 2) {
+		/* 摦嶌拞偩偭偨傜 */
+		now_task = task_now();
+		task_remove(task); /* 偙傟傪幚峴偡傞偲flags偼1偵側傞 */
+		if (task == now_task) {
+			/* 帺暘帺恎偺僗儕乕僾偩偭偨偺偱丄僞僗僋僗僀僢僠偑昁梫 */
+			task_switchsub();
+			now_task = task_now(); /* 愝掕屻偱偺丄乽尰嵼偺僞僗僋乿傪嫵偊偰傕傜偆 */
+			farjmp(0, now_task->sel);
+		}
+	}
 	return;
 }
 
@@ -168,20 +197,6 @@ void task_switch(void)
 	timer_settime(task_timer, new_task->priority);
 	if (new_task != now_task) {
 		farjmp(0, new_task->sel);
-	}
-	return;
-}
-void task_sleep(struct TASK *task)
-{
-	struct TASK *now_task;
-	if (task->flags == 2) {
-		now_task = task_now();
-		task_remove(task);
-		if (task == now_task) {
-			task_switchsub();
-			now_task = task_now();
-			farjmp(0, now_task->sel);
-		}
 	}
 	return;
 }
