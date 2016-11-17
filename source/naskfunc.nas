@@ -5,7 +5,7 @@
 [INSTRSET "i486p"]
 [BITS 32]
 [FILE "naskfunc.nas"]
-; 全局函数， 汇编实现
+		; 全局函数， 汇编实现
 		GLOBAL	_io_hlt, _io_cli, _io_sti, _io_stihlt
 		GLOBAL	_io_in8,  _io_in16,  _io_in32
 		GLOBAL	_io_out8, _io_out16, _io_out32
