@@ -42,6 +42,8 @@ void HariMain(void)
 	};
 	int key_to = 0, key_shift = 0, key_leds = (binfo->leds >> 4) & 7, keycmd_wait = -1;
 	struct CONSOLE *cons;
+	int j, x, y;
+	struct SHEET *sht;
 
 	init_gdtidt();
 	init_pic();
@@ -165,6 +167,9 @@ void HariMain(void)
 						fifo32_put(&task_cons->fifo, s[0] + 256);
 					}
 				}
+				if (i == 256 + 0x57 && i <= 511) { //F11
+					sheet_updown(shtctl->sheets[1], shtctl->top - 1);
+				}
 				if (i == 256 + 0x0e) {	/* バックスペース */
 					if (key_to == 0) {	/* タスクAへ */
 						if (cursor_x > 8) {
@@ -266,7 +271,16 @@ void HariMain(void)
 					sheet_slide(sht_mouse, mx, my);
 					if ((mdec.btn & 0x01) != 0) {
 						/* 左ボタンを押していたら、sht_winを動かす */
-						sheet_slide(sht_win, mx - 80, my - 8);
+						for (j = shtctl->top - 1; j > 0; j--) {
+							sht = shtctl->sheets[j];
+							x = mx - sht->vx0;
+							y = my - sht->vy0;
+							if (0 <= x&&x < sht->bxsize && 0 <= y&&y < sht->bysize) {
+								if (sht->buf[y*sht->bxsize + x] != sht->col_inv) {
+									sheet_updown(sht, shtctl->top - 1);
+								}
+							}
+						}
 					}
 				}
 			} else if (i <= 1) { /* カーソル用タイマ */

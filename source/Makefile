@@ -136,7 +136,7 @@ walk.bim : walk.obj a_nask.obj Makefile
 walk.hrb : walk.bim Makefile
 	$(BIM2HRB) walk.bim walk.hrb 48k
 
-haribote.img : ipl10.bin haribote.sys Makefile \
+vOS.img : ipl10.bin haribote.sys Makefile \
 		hello.hrb hello2.hrb a.hrb hello3.hrb hello4.hrb hello5.hrb \
 		winhelo.hrb winhelo2.hrb winhelo3.hrb star1.hrb stars.hrb stars2.hrb \
 		lines.hrb walk.hrb
@@ -159,7 +159,7 @@ haribote.img : ipl10.bin haribote.sys Makefile \
 		copy from:stars2.hrb to:@: \
 		copy from:lines.hrb to:@: \
 		copy from:walk.hrb to:@: \
-		imgout:haribote.img
+		imgout:vOS.img
 
 # ˆê”Ê‹K‘¥
 
@@ -175,16 +175,16 @@ haribote.img : ipl10.bin haribote.sys Makefile \
 # ƒRƒ}ƒ“ƒh
 
 img :
-	$(MAKE) haribote.img
+	$(MAKE) vOS.img
 
 run :
 	$(MAKE) img
-	$(COPY) haribote.img ..\z_tools\qemu\fdimage0.bin
+	$(COPY) vOS.img ..\z_tools\qemu\fdimage0.bin
 	$(MAKE) -C ../z_tools/qemu
 
 install :
 	$(MAKE) img
-	$(IMGTOL) w a: haribote.img
+	$(IMGTOL) w a: vOS.img
 
 clean :
 	-$(DEL) *.bin
@@ -197,4 +197,4 @@ clean :
 
 src_only :
 	$(MAKE) clean
-	-$(DEL) haribote.img
+	-$(DEL) vOS.img
