@@ -42,8 +42,8 @@ void HariMain(void)
 	};
 	int key_to = 0, key_shift = 0, key_leds = (binfo->leds >> 4) & 7, keycmd_wait = -1;
 	struct CONSOLE *cons;
-	int j, x, y;
-	struct SHEET *sht;
+	int j, x, y, mmx = -1, mmy = -1;
+	struct SHEET *sht = 0;
 
 	init_gdtidt();
 	init_pic();
@@ -269,18 +269,34 @@ void HariMain(void)
 						my = binfo->scrny - 1;
 					}
 					sheet_slide(sht_mouse, mx, my);
-					if ((mdec.btn & 0x01) != 0) {
-						/* 嵍儃僞儞傪墴偟偰偄偨傜丄sht_win傪摦偐偡 */
-						for (j = shtctl->top - 1; j > 0; j--) {
-							sht = shtctl->sheets[j];
-							x = mx - sht->vx0;
-							y = my - sht->vy0;
-							if (0 <= x&&x < sht->bxsize && 0 <= y&&y < sht->bysize) {
-								if (sht->buf[y*sht->bxsize + x] != sht->col_inv) {
-									sheet_updown(sht, shtctl->top - 1);
+					if ((mdec.btn & 0x01) != 0) { //移动中按下左键
+						if (mmx < 0) {
+							for (j = shtctl->top - 1; j > 0; j--) {
+								sht = shtctl->sheets[j];
+								x = mx - sht->vx0;
+								y = my - sht->vy0;
+								if (0 <= x&&x < sht->bxsize && 0 <= y&&y < sht->bysize) {
+									if (sht->buf[y*sht->bxsize + x] != sht->col_inv) {
+										sheet_updown(sht, shtctl->top - 1);
+										if (3 <= x&&x < sht->bxsize - 3 && 3 <= y&&y < 21) {
+											mmx = mx;
+											mmy = my;
+										}
+										break;
+									}
 								}
 							}
 						}
+						else {
+							x = mx - mmx;
+							y = my - mmy;
+							sheet_slide(sht, sht->vx0 + x, sht->vy0 + y);
+							mmx = mx;
+							mmy = my;
+						}
+					}
+					else {
+						mmx = -1;
 					}
 				}
 			} else if (i <= 1) { /* 僇乕僜儖梡僞僀儅 */

@@ -5,6 +5,7 @@
 *.gas
 *.obj
 *.map
+*.hrb
 *.sln
 *.vcxproj
 *.filters

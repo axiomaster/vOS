@@ -46,8 +46,8 @@ bootpack.bim : $(OBJS_BOOTPACK) Makefile
 bootpack.hrb : bootpack.bim Makefile
 	$(BIM2HRB) bootpack.bim bootpack.hrb 0
 
-haribote.sys : asmhead.bin bootpack.hrb Makefile
-	copy /B asmhead.bin+bootpack.hrb haribote.sys
+vOS.sys : asmhead.bin bootpack.hrb Makefile
+	copy /B asmhead.bin+bootpack.hrb vOS.sys
 
 hello.hrb : hello.nas Makefile
 	$(NASK) hello.nas hello.hrb hello.lst
@@ -136,13 +136,13 @@ walk.bim : walk.obj a_nask.obj Makefile
 walk.hrb : walk.bim Makefile
 	$(BIM2HRB) walk.bim walk.hrb 48k
 
-vOS.img : ipl10.bin haribote.sys Makefile \
+vOS.img : ipl10.bin vOS.sys Makefile \
 		hello.hrb hello2.hrb a.hrb hello3.hrb hello4.hrb hello5.hrb \
 		winhelo.hrb winhelo2.hrb winhelo3.hrb star1.hrb stars.hrb stars2.hrb \
 		lines.hrb walk.hrb
 	$(EDIMG)   imgin:../z_tools/fdimg0at.tek \
 		wbinimg src:ipl10.bin len:512 from:0 to:0 \
-		copy from:haribote.sys to:@: \
+		copy from:vOS.sys to:@: \
 		copy from:ipl10.nas to:@: \
 		copy from:make.bat to:@: \
 		copy from:hello.hrb to:@: \
@@ -193,7 +193,7 @@ clean :
 	-$(DEL) *.map
 	-$(DEL) *.bim
 	-$(DEL) *.hrb
-	-$(DEL) haribote.sys
+	-$(DEL) vOS.sys
 
 src_only :
 	$(MAKE) clean
