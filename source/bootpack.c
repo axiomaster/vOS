@@ -5,6 +5,9 @@
 
 #define KEYCMD_LED		0xed
 
+int keywin_off(struct SHEET *key_win, struct SHEET *sht_win, int cur_c, int cur_x);
+int keywin_on(struct SHEET *key_win, struct SHEET *sht_win, int cur_c);
+
 void HariMain(void)
 {
 	struct BOOTINFO *binfo = (struct BOOTINFO *) ADR_BOOTINFO;
@@ -43,7 +46,7 @@ void HariMain(void)
 	int key_to = 0, key_shift = 0, key_leds = (binfo->leds >> 4) & 7, keycmd_wait = -1;
 	struct CONSOLE *cons;
 	int j, x, y, mmx = -1, mmy = -1;
-	struct SHEET *sht = 0;
+	struct SHEET *sht = 0, *key_win;
 
 	init_gdtidt();
 	init_pic();
@@ -66,36 +69,36 @@ void HariMain(void)
 	task_a = task_init(memman);
 	fifo.task = task_a;
 	task_run(task_a, 1, 2);
-	*((int *) 0x0fe4) = (int) shtctl;
+	*((int *)0x0fe4) = (int)shtctl;
 
 	/* sht_back */
-	sht_back  = sheet_alloc(shtctl);
-	buf_back  = (unsigned char *) memman_alloc_4k(memman, binfo->scrnx * binfo->scrny);
+	sht_back = sheet_alloc(shtctl);
+	buf_back = (unsigned char *)memman_alloc_4k(memman, binfo->scrnx * binfo->scrny);
 	sheet_setbuf(sht_back, buf_back, binfo->scrnx, binfo->scrny, -1); /* 摟柧怓側偟 */
 	init_screen8(buf_back, binfo->scrnx, binfo->scrny);
 
 	/* sht_cons */
 	sht_cons = sheet_alloc(shtctl);
-	buf_cons = (unsigned char *) memman_alloc_4k(memman, 256 * 165);
+	buf_cons = (unsigned char *)memman_alloc_4k(memman, 256 * 165);
 	sheet_setbuf(sht_cons, buf_cons, 256, 165, -1); /* 摟柧怓側偟 */
 	make_window8(buf_cons, 256, 165, "console", 0);
 	make_textbox8(sht_cons, 8, 28, 240, 128, COL8_000000);
 	task_cons = task_alloc();
 	task_cons->tss.esp = memman_alloc_4k(memman, 64 * 1024) + 64 * 1024 - 12;
-	task_cons->tss.eip = (int) &console_task;
+	task_cons->tss.eip = (int)&console_task;
 	task_cons->tss.es = 1 * 8;
 	task_cons->tss.cs = 2 * 8;
 	task_cons->tss.ss = 1 * 8;
 	task_cons->tss.ds = 1 * 8;
 	task_cons->tss.fs = 1 * 8;
 	task_cons->tss.gs = 1 * 8;
-	*((int *) (task_cons->tss.esp + 4)) = (int) sht_cons;
-	*((int *) (task_cons->tss.esp + 8)) = memtotal;
+	*((int *)(task_cons->tss.esp + 4)) = (int)sht_cons;
+	*((int *)(task_cons->tss.esp + 8)) = memtotal;
 	task_run(task_cons, 2, 2); /* level=2, priority=2 */
 
 	/* sht_win */
-	sht_win   = sheet_alloc(shtctl);
-	buf_win   = (unsigned char *) memman_alloc_4k(memman, 160 * 52);
+	sht_win = sheet_alloc(shtctl);
+	buf_win = (unsigned char *)memman_alloc_4k(memman, 160 * 52);
 	sheet_setbuf(sht_win, buf_win, 144, 52, -1); /* 摟柧怓側偟 */
 	make_window8(buf_win, 144, 52, "task_a", 1);
 	make_textbox8(sht_win, 8, 28, 128, 16, COL8_FFFFFF);
@@ -112,14 +115,18 @@ void HariMain(void)
 	mx = (binfo->scrnx - 16) / 2; /* 夋柺拞墰偵側傞傛偆偵嵗昗寁嶼 */
 	my = (binfo->scrny - 28 - 16) / 2;
 
-	sheet_slide(sht_back,  0,  0);
-	sheet_slide(sht_cons, 32,  4);
-	sheet_slide(sht_win,  64, 56);
+	sheet_slide(sht_back, 0, 0);
+	sheet_slide(sht_cons, 32, 4);
+	sheet_slide(sht_win, 64, 56);
 	sheet_slide(sht_mouse, mx, my);
-	sheet_updown(sht_back,  0);
-	sheet_updown(sht_cons,  1);
-	sheet_updown(sht_win,   2);
+	sheet_updown(sht_back, 0);
+	sheet_updown(sht_cons, 1);
+	sheet_updown(sht_win, 2);
 	sheet_updown(sht_mouse, 3);
+
+	key_win = sht_win;
+	sht_cons->task = task_cons;
+	sht_cons->flags |= 0x20; //
 
 	/* 嵟弶偵僉乕儃乕僪忬懺偲偺怘偄堘偄偑側偄傛偆偵丄愝掕偟偰偍偔偙偲偵偡傞 */
 	fifo32_put(&keycmd, KEYCMD_LED);
@@ -136,73 +143,89 @@ void HariMain(void)
 		if (fifo32_status(&fifo) == 0) {
 			task_sleep(task_a);
 			io_sti();
-		} else {
+		}
+		else {
 			i = fifo32_get(&fifo);
 			io_sti();
+			if (key_win->flags == 0) {    //输入窗口关闭
+				key_win = shtctl->sheets[shtctl->top - 1];
+				cursor_c = keywin_on(key_win, sht_win, cursor_c);
+			}
 			if (256 <= i && i <= 511) { /* 僉乕儃乕僪僨乕僞 */
 				if (i < 0x80 + 256) { /* 僉乕僐乕僪傪暥帤僐乕僪偵曄姺 */
 					if (key_shift == 0) {
 						s[0] = keytable0[i - 256];
-					} else {
+					}
+					else {
 						s[0] = keytable1[i - 256];
 					}
-				} else {
+				}
+				else {
 					s[0] = 0;
 				}
 				if ('A' <= s[0] && s[0] <= 'Z') {	/* 擖椡暥帤偑傾儖僼傽儀僢僩 */
 					if (((key_leds & 4) == 0 && key_shift == 0) ||
-							((key_leds & 4) != 0 && key_shift != 0)) {
+						((key_leds & 4) != 0 && key_shift != 0)) {
 						s[0] += 0x20;	/* 戝暥帤傪彫暥帤偵曄姺 */
 					}
 				}
-				if (s[0] != 0) { /* 捠忢暥帤 */
-					if (key_to == 0) {	/* 僞僗僋A傊 */
+				if (s[0] != 0) {     //一般字符
+					if (key_win == sht_win) {	//发送至任务A
 						if (cursor_x < 128) {
 							/* 堦暥帤昞帵偟偰偐傜丄僇乕僜儖傪1偮恑傔傞 */
 							s[1] = 0;
 							putfonts8_asc_sht(sht_win, cursor_x, 28, COL8_000000, COL8_FFFFFF, s, 1);
 							cursor_x += 8;
 						}
-					} else {	/* 僐儞僜乕儖傊 */
-						fifo32_put(&task_cons->fifo, s[0] + 256);
+					}
+					else {	/* 僐儞僜乕儖傊 */
+						fifo32_put(&key_win->task->fifo, s[0] + 256);
 					}
 				}
 				if (i == 256 + 0x57 && i <= 511) { //F11
 					sheet_updown(shtctl->sheets[1], shtctl->top - 1);
 				}
 				if (i == 256 + 0x0e) {	/* 僶僢僋僗儁乕僗 */
-					if (key_to == 0) {	/* 僞僗僋A傊 */
+					if (key_win == sht_win) {	//发送至任务A
 						if (cursor_x > 8) {
 							/* 僇乕僜儖傪僗儁乕僗偱徚偟偰偐傜丄僇乕僜儖傪1偮栠偡 */
 							putfonts8_asc_sht(sht_win, cursor_x, 28, COL8_000000, COL8_FFFFFF, " ", 1);
 							cursor_x -= 8;
 						}
-					} else {	/* 僐儞僜乕儖傊 */
-						fifo32_put(&task_cons->fifo, 8 + 256);
+					}
+					else {	/* 僐儞僜乕儖傊 */
+						fifo32_put(&key_win->task->fifo, 8 + 256);
 					}
 				}
 				if (i == 256 + 0x1c) {	/* Enter */
-					if (key_to != 0) {	/* 僐儞僜乕儖傊 */
-						fifo32_put(&task_cons->fifo, 10 + 256);
+					if (key_win != sht_win) {	//发送至任务A
+						fifo32_put(&key_win->task->fifo, 10 + 256);
 					}
 				}
 				if (i == 256 + 0x0f) {	/* Tab */
-					if (key_to == 0) {
-						key_to = 1;
-						make_wtitle8(buf_win,  sht_win->bxsize,  "task_a",  0);
-						make_wtitle8(buf_cons, sht_cons->bxsize, "console", 1);
-						cursor_c = -1; /* 僇乕僜儖傪徚偡 */
-						boxfill8(sht_win->buf, sht_win->bxsize, COL8_FFFFFF, cursor_x, 28, cursor_x + 7, 43);
-						fifo32_put(&task_cons->fifo, 2); /* 僐儞僜乕儖偺僇乕僜儖ON */
-					} else {
-						key_to = 0;
-						make_wtitle8(buf_win,  sht_win->bxsize,  "task_a",  1);
-						make_wtitle8(buf_cons, sht_cons->bxsize, "console", 0);
-						cursor_c = COL8_000000; /* 僇乕僜儖傪弌偡 */
-						fifo32_put(&task_cons->fifo, 3); /* 僐儞僜乕儖偺僇乕僜儖OFF */
+					cursor_c = keywin_off(key_win, sht_win, cursor_c, cursor_x);
+					j = key_win->height - 1;
+					if (j == 0) {
+						j = shtctl->top - 1;
 					}
-					sheet_refresh(sht_win,  0, 0, sht_win->bxsize,  21);
-					sheet_refresh(sht_cons, 0, 0, sht_cons->bxsize, 21);
+					key_win = shtctl->sheets[j];
+					cursor_c = keywin_on(key_win, sht_win, cursor_c);
+					//if (key_to == 0) {
+					//	key_to = 1;
+					//	make_wtitle8(buf_win,  sht_win->bxsize,  "task_a",  0);
+					//	make_wtitle8(buf_cons, sht_cons->bxsize, "console", 1);
+					//	cursor_c = -1; /* 僇乕僜儖傪徚偡 */
+					//	boxfill8(sht_win->buf, sht_win->bxsize, COL8_FFFFFF, cursor_x, 28, cursor_x + 7, 43);
+					//	fifo32_put(&task_cons->fifo, 2); /* 僐儞僜乕儖偺僇乕僜儖ON */
+					//} else {
+					//	key_to = 0;
+					//	make_wtitle8(buf_win,  sht_win->bxsize,  "task_a",  1);
+					//	make_wtitle8(buf_cons, sht_cons->bxsize, "console", 0);
+					//	cursor_c = COL8_000000; /* 僇乕僜儖傪弌偡 */
+					//	fifo32_put(&task_cons->fifo, 3); /* 僐儞僜乕儖偺僇乕僜儖OFF */
+					//}
+					//sheet_refresh(sht_win,  0, 0, sht_win->bxsize,  21);
+					//sheet_refresh(sht_cons, 0, 0, sht_cons->bxsize, 21);
 				}
 				if (i == 256 + 0x2a) {	/* 嵍僔僼僩 ON */
 					key_shift |= 1;
@@ -232,11 +255,11 @@ void HariMain(void)
 					fifo32_put(&keycmd, key_leds);
 				}
 				if (i == 256 + 0x3b && key_shift != 0 && task_cons->tss.ss0 != 0) {	/* Shift+F1 */
-					cons = (struct CONSOLE *) *((int *) 0x0fec);
+					cons = (struct CONSOLE *) *((int *)0x0fec);
 					cons_putstr0(cons, "\nBreak(key) :\n");
 					io_cli();	/* 嫮惂廔椆張棟拞偵僞僗僋偑曄傢傞偲崲傞偐傜 */
 					task_cons->tss.eax = (int) &(task_cons->tss.esp0);
-					task_cons->tss.eip = (int) asm_end_app;
+					task_cons->tss.eip = (int)asm_end_app;
 					io_sti();
 				}
 				if (i == 256 + 0xfa) {	/* 僉乕儃乕僪偑僨乕僞傪柍帠偵庴偗庢偭偨 */
@@ -251,7 +274,8 @@ void HariMain(void)
 					boxfill8(sht_win->buf, sht_win->bxsize, cursor_c, cursor_x, 28, cursor_x + 7, 43);
 				}
 				sheet_refresh(sht_win, cursor_x, 28, cursor_x + 8, 44);
-			} else if (512 <= i && i <= 767) { /* 儅僂僗僨乕僞 */
+			}
+			else if (512 <= i && i <= 767) {  //鼠标
 				if (mouse_decode(&mdec, i - 512) != 0) {
 					/* 儅僂僗僇乕僜儖偺堏摦 */
 					mx += mdec.x;
@@ -283,12 +307,14 @@ void HariMain(void)
 											mmy = my;
 										}
 										if (sht->bxsize - 21 <= x&&x < sht->bxsize - 5 && 5 <= y&&y < 19) { //点击位置
-											cons = (struct CONSOLE *)*((int *)0x0fec);
-											cons_putstr0(cons, "\nBreak(mouse) :\n");
-											io_cli();
-											task_cons->tss.eax = (int) &(task_cons->tss.esp0);
-											task_cons->tss.eip = (int)asm_end_app;
-											io_sti();
+											if ((sht->flags & 0x10) != 0) {
+												cons = (struct CONSOLE *)*((int *)0x0fec);
+												cons_putstr0(cons, "\nBreak(mouse) :\n");
+												io_cli();
+												task_cons->tss.eax = (int) &(task_cons->tss.esp0);
+												task_cons->tss.eip = (int)asm_end_app;
+												io_sti();
+											}
 										}
 										break;
 									}
@@ -307,13 +333,15 @@ void HariMain(void)
 						mmx = -1;
 					}
 				}
-			} else if (i <= 1) { /* 僇乕僜儖梡僞僀儅 */
+			}
+			else if (i <= 1) { /* 僇乕僜儖梡僞僀儅 */
 				if (i != 0) {
 					timer_init(timer, &fifo, 0); /* 師偼0傪 */
 					if (cursor_c >= 0) {
 						cursor_c = COL8_000000;
 					}
-				} else {
+				}
+				else {
 					timer_init(timer, &fifo, 1); /* 師偼1傪 */
 					if (cursor_c >= 0) {
 						cursor_c = COL8_FFFFFF;
@@ -328,3 +356,33 @@ void HariMain(void)
 		}
 	}
 }
+
+int keywin_off(struct SHEET *key_win, struct SHEET *sht_win, int cur_c, int cur_x)
+{
+	change_wtitle8(key_win, 0);
+	if (key_win == sht_win) {
+		cur_c = -1; /* カーソルを消す */
+		boxfill8(sht_win->buf, sht_win->bxsize, COL8_FFFFFF, cur_x, 28, cur_x + 7, 43);
+	}
+	else {
+		if ((key_win->flags & 0x20) != 0) {
+			fifo32_put(&key_win->task->fifo, 3); /* コンソールのカーソルOFF */
+		}
+	}
+	return cur_c;
+}
+
+int keywin_on(struct SHEET *key_win, struct SHEET *sht_win, int cur_c)
+{
+	change_wtitle8(key_win, 1);
+	if (key_win == sht_win) {
+		cur_c = COL8_000000; /* カーソルを出す */
+	}
+	else {
+		if ((key_win->flags & 0x20) != 0) {
+			fifo32_put(&key_win->task->fifo, 2); /* コンソールのカーソルON */
+		}
+	}
+	return cur_c;
+}
+
