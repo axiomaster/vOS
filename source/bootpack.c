@@ -210,22 +210,6 @@ void HariMain(void)
 					}
 					key_win = shtctl->sheets[j];
 					cursor_c = keywin_on(key_win, sht_win, cursor_c);
-					//if (key_to == 0) {
-					//	key_to = 1;
-					//	make_wtitle8(buf_win,  sht_win->bxsize,  "task_a",  0);
-					//	make_wtitle8(buf_cons, sht_cons->bxsize, "console", 1);
-					//	cursor_c = -1; /* カーソルを消す */
-					//	boxfill8(sht_win->buf, sht_win->bxsize, COL8_FFFFFF, cursor_x, 28, cursor_x + 7, 43);
-					//	fifo32_put(&task_cons->fifo, 2); /* コンソールのカーソルON */
-					//} else {
-					//	key_to = 0;
-					//	make_wtitle8(buf_win,  sht_win->bxsize,  "task_a",  1);
-					//	make_wtitle8(buf_cons, sht_cons->bxsize, "console", 0);
-					//	cursor_c = COL8_000000; /* カーソルを出す */
-					//	fifo32_put(&task_cons->fifo, 3); /* コンソールのカーソルOFF */
-					//}
-					//sheet_refresh(sht_win,  0, 0, sht_win->bxsize,  21);
-					//sheet_refresh(sht_cons, 0, 0, sht_cons->bxsize, 21);
 				}
 				if (i == 256 + 0x2a) {	/* 左シフト ON */
 					key_shift |= 1;
@@ -302,6 +286,11 @@ void HariMain(void)
 								if (0 <= x&&x < sht->bxsize && 0 <= y&&y < sht->bysize) {
 									if (sht->buf[y*sht->bxsize + x] != sht->col_inv) {
 										sheet_updown(sht, shtctl->top - 1);
+										if (sht != key_win) {
+											cursor_c = keywin_off(key_win, sht_win, cursor_c, cursor_x);
+											key_win = sht;
+											cursor_c = keywin_on(key_win, sht_win, cursor_c);
+										}
 										if (3 <= x&&x < sht->bxsize - 3 && 3 <= y&&y < 21) {
 											mmx = mx;
 											mmy = my;
