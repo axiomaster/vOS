@@ -142,10 +142,22 @@ noodle.bim : noodle.obj a_nask.obj Makefile
 noodle.hrb : noodle.bim Makefile
 	$(BIM2HRB) noodle.bim noodle.hrb 40k
 
+beepdown.bim : beepdown.obj a_nask.obj Makefile
+	$(OBJ2BIM) @$(RULEFILE) out:beepdown.bim stack:1k map:beepdown.map \
+		beepdown.obj a_nask.obj
+beepdown.hrb : beepdown.bim Makefile
+	$(BIM2HRB) beepdown.bim beepdown.hrb 40k
+
+beepup.bim : beepup.obj a_nask.obj Makefile
+	$(OBJ2BIM) @$(RULEFILE) out:beepup.bim stack:1k map:beepup.map \
+		beepup.obj a_nask.obj
+beepup.hrb : beepup.bim Makefile
+	$(BIM2HRB) beepup.bim beepup.hrb 40k
+
 vOS.img : ipl10.bin vOS.sys Makefile \
 		hello.hrb hello2.hrb a.hrb hello3.hrb hello4.hrb hello5.hrb \
 		winhelo.hrb winhelo2.hrb winhelo3.hrb star1.hrb stars.hrb stars2.hrb \
-		lines.hrb walk.hrb noodle.hrb
+		lines.hrb walk.hrb noodle.hrb beepdown.hrb beepup.hrb
 	$(EDIMG)   imgin:../z_tools/fdimg0at.tek \
 		wbinimg src:ipl10.bin len:512 from:0 to:0 \
 		copy from:vOS.sys to:@: \
@@ -166,6 +178,8 @@ vOS.img : ipl10.bin vOS.sys Makefile \
 		copy from:lines.hrb to:@: \
 		copy from:walk.hrb to:@: \
 		copy from:noodle.hrb to:@: \
+		copy from:beepdown.hrb to:@: \
+		copy from:beepup.hrb to:@: \
 		imgout:vOS.img
 
 # ˆê”Ê‹K‘¥
