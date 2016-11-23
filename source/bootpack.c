@@ -22,7 +22,7 @@ void HariMain(void)
 
 	unsigned char *buf_back, buf_mouse[256], *buf_win, *buf_cons[2]; //ｶ犧onsole
 	struct SHEET *sht_back, *sht_mouse, *sht_win, *sht_cons[2];
-	struct TASK *task_a, *task_cons[2];
+	struct TASK *task_a, *task_cons[2], *task; //
 	struct TIMER *timer;
 	static char keytable0[0x80] = {
 		0,   0,   '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '^', 0,   0,
@@ -243,13 +243,16 @@ void HariMain(void)
 					fifo32_put(&keycmd, KEYCMD_LED);
 					fifo32_put(&keycmd, key_leds);
 				}
-				if (i == 256 + 0x3b && key_shift != 0 && task_cons[0]->tss.ss0 != 0) {	/* Shift+F1 */
-					cons = (struct CONSOLE *) *((int *)0x0fec);
-					cons_putstr0(cons, "\nBreak(key) :\n");
-					io_cli();	/* 強制終了処理中にタスクが変わると困るから */
-					task_cons[0]->tss.eax = (int) &(task_cons[0]->tss.esp0);
-					task_cons[0]->tss.eip = (int)asm_end_app;
-					io_sti();
+				if (i == 256 + 0x3b && key_shift != 0) {	// Shift+F1   && task_cons[0]->tss.ss0 != 0  
+					//cons = (struct CONSOLE *) *((int *)0x0fec);
+					task = key_win->task;
+					if (task != 0 && task->tss.ss0 != 0) {
+						cons_putstr0(task->cons, "\nBreak(key) :\n");
+						io_cli();	//ﾇｿﾖﾆｽ睫ｱｽ鋓ｹﾈﾎﾎﾐｻｻ
+						task_cons[0]->tss.eax = (int) &(task_cons[0]->tss.esp0);
+						task_cons[0]->tss.eip = (int)asm_end_app;
+						io_sti();
+					}
 				}
 				if (i == 256 + 0xfa) {	/* キーボードがデータを無事に受け取った */
 					keycmd_wait = -1;
@@ -300,12 +303,13 @@ void HariMain(void)
 											mmx = mx;
 											mmy = my;
 										}
-										if (sht->bxsize - 21 <= x&&x < sht->bxsize - 5 && 5 <= y&&y < 19) { //ｵ羹ｻﾖﾃ
+										if (sht->bxsize - 21 <= x&&x < sht->bxsize - 5 && 5 <= y&&y < 19) { //ｵ羹ｻﾖﾃ x
 											if ((sht->flags & 0x10) != 0) {
-												cons = (struct CONSOLE *)*((int *)0x0fec);
-												cons_putstr0(cons, "\nBreak(mouse) :\n");
+												//cons = (struct CONSOLE *)*((int *)0x0fec);
+												task = sht->task;
+												cons_putstr0(task->cons, "\nBreak(mouse) :\n");
 												io_cli();
-												task_cons[0]->tss.eax = (int) &(task_cons[0]->tss.esp0);
+												task_cons[0]->tss.eax = (int) &(task->tss.esp0);
 												task_cons[0]->tss.eip = (int)asm_end_app;
 												io_sti();
 											}
