@@ -6,12 +6,7 @@
 *.obj
 *.map
 *.hrb
-*.sln
-*.vcxproj
-*.filters
 *.user
-*.db
-*.opendb
 .idea
 .vs
 projects
