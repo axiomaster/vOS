@@ -211,9 +211,10 @@ void HariMain(void)
 					if (task != 0 && task->tss.ss0 != 0) {
 						cons_putstr0(task->cons, "\nBreak(key) :\n");
 						io_cli();	//强制结束时禁止任务切换
-						task_cons[0]->tss.eax = (int) &(task_cons[0]->tss.esp0);
-						task_cons[0]->tss.eip = (int)asm_end_app;
+						task->tss.eax = (int) &(task->tss.esp0);
+						task->tss.eip = (int)asm_end_app;
 						io_sti();
+						task_run(task, -1, 0);
 					}
 				}
 				if (i == 256 + 0x3c && key_shift != 0) {	/* Shift+F2 */
@@ -286,9 +287,10 @@ void HariMain(void)
 												task = sht->task;
 												cons_putstr0(task->cons, "\nBreak(mouse) :\n");
 												io_cli();
-												task_cons[0]->tss.eax = (int) &(task->tss.esp0);
-												task_cons[0]->tss.eip = (int)asm_end_app;
+												task->tss.eax = (int) &(task->tss.esp0);
+												task->tss.eip = (int)asm_end_app;
 												io_sti();
+												task_run(task, -1, 0);
 											}
 											else {
 												task = sht->task;
