@@ -19,9 +19,11 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 	//*((int *) 0x0fec) = (int) &cons;
 
 //	fifo32_init(&task->fifo, 128, fifobuf, task);
-	cons.timer = timer_alloc();
-	timer_init(cons.timer, &task->fifo, 1);
-	timer_settime(cons.timer, 50);
+	if (sheet != 0) {
+		cons.timer = timer_alloc();
+		timer_init(cons.timer, &task->fifo, 1);
+		timer_settime(cons.timer, 50);
+	}
 	file_readfat(fat, (unsigned char *)(ADR_DISKIMG + 0x000200));
 
 	/* 僾儘儞僾僩昞帵 */
@@ -77,7 +79,10 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 					cmdline[cons.cur_x / 8 - 2] = 0;
 					cons_newline(&cons);
 					cons_runcmd(cmdline, &cons, fat, memtotal);	/* 僐儅儞僪幚峴 */
-					/* 僾儘儞僾僩昞帵 */
+					if (sheet == 0) {
+						cmd_exit(&cons, fat);
+					}
+																/* 僾儘儞僾僩昞帵 */
 					cons_putchar(&cons, '>', 1);
 				}
 				else {
@@ -90,10 +95,12 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 				}
 			}
 			/* 僇乕僜儖嵞昞帵 */
-			if (cons.cur_c >= 0) {
-				boxfill8(sheet->buf, sheet->bxsize, cons.cur_c, cons.cur_x, cons.cur_y, cons.cur_x + 7, cons.cur_y + 15);
+			if (sheet != 0) {
+				if (cons.cur_c >= 0) {
+					boxfill8(sheet->buf, sheet->bxsize, cons.cur_c, cons.cur_x, cons.cur_y, cons.cur_x + 7, cons.cur_y + 15);
+				}
+				sheet_refresh(sheet, cons.cur_x, cons.cur_y, cons.cur_x + 8, cons.cur_y + 16);
 			}
-			sheet_refresh(sheet, cons.cur_x, cons.cur_y, cons.cur_x + 8, cons.cur_y + 16);
 		}
 	}
 }
@@ -103,9 +110,11 @@ void cons_putchar(struct CONSOLE *cons, int chr, char move)
 	char s[2];
 	s[0] = chr;
 	s[1] = 0;
-	if (s[0] == 0x09) {	/* 僞僽 */
+	if (s[0] == 0x09) { //制表符
 		for (;;) {
-			putfonts8_asc_sht(cons->sht, cons->cur_x, cons->cur_y, COL8_FFFFFF, COL8_000000, " ", 1);
+			if (cons->sht != 0) {
+				putfonts8_asc_sht(cons->sht, cons->cur_x, cons->cur_y, COL8_FFFFFF, COL8_000000, " ", 1);
+			}
 			cons->cur_x += 8;
 			if (cons->cur_x == 8 + 240) {
 				cons_newline(cons);
@@ -115,14 +124,16 @@ void cons_putchar(struct CONSOLE *cons, int chr, char move)
 			}
 		}
 	}
-	else if (s[0] == 0x0a) {	/* 夵峴 */
+	else if (s[0] == 0x0a) {	//换行
 		cons_newline(cons);
 	}
-	else if (s[0] == 0x0d) {	/* 暅婣 */
-	 /* 偲傝偁偊偢側偵傕偟側偄 */
+	else if (s[0] == 0x0d) {	//回车
+	 //do nothing
 	}
-	else {	/* 晛捠偺暥帤 */
-		putfonts8_asc_sht(cons->sht, cons->cur_x, cons->cur_y, COL8_FFFFFF, COL8_000000, s, 1);
+	else {	//一般字符
+		if (cons->sht != 0) {
+			putfonts8_asc_sht(cons->sht, cons->cur_x, cons->cur_y, COL8_FFFFFF, COL8_000000, s, 1);
+		}
 		if (move != 0) {
 			/* move偑0偺偲偒偼僇乕僜儖傪恑傔側偄 */
 			cons->cur_x += 8;
@@ -139,21 +150,23 @@ void cons_newline(struct CONSOLE *cons)
 	int x, y;
 	struct SHEET *sheet = cons->sht;
 	if (cons->cur_y < 28 + 112) {
-		cons->cur_y += 16; /* 師偺峴傊 */
+		cons->cur_y += 16; //到下一行
 	}
 	else {
 		/* 僗僋儘乕儖 */
-		for (y = 28; y < 28 + 112; y++) {
-			for (x = 8; x < 8 + 240; x++) {
-				sheet->buf[x + y * sheet->bxsize] = sheet->buf[x + (y + 16) * sheet->bxsize];
+		if (sheet != 0) {
+			for (y = 28; y < 28 + 112; y++) {
+				for (x = 8; x < 8 + 240; x++) {
+					sheet->buf[x + y * sheet->bxsize] = sheet->buf[x + (y + 16) * sheet->bxsize];
+				}
 			}
-		}
-		for (y = 28 + 112; y < 28 + 128; y++) {
-			for (x = 8; x < 8 + 240; x++) {
-				sheet->buf[x + y * sheet->bxsize] = COL8_000000;
+			for (y = 28 + 112; y < 28 + 128; y++) {
+				for (x = 8; x < 8 + 240; x++) {
+					sheet->buf[x + y * sheet->bxsize] = COL8_000000;
+				}
 			}
+			sheet_refresh(sheet, 8, 28, 8 + 240, 28 + 128);
 		}
-		sheet_refresh(sheet, 8, 28, 8 + 240, 28 + 128);
 	}
 	cons->cur_x = 8;
 	return;
@@ -195,6 +208,9 @@ void cons_runcmd(char *cmdline, struct CONSOLE *cons, int *fat, unsigned int mem
 	}
 	else if (strncmp(cmdline, "start ", 6) == 0) {
 		cmd_start(cons, cmdline, memtotal);
+	}
+	else if (strncmp(cmdline, "ncst ", 5) == 0) {
+		cmd_ncst(cons, cmdline, memtotal);
 	}
 	else if (cmdline[0] != 0) {
 		if (cmd_app(cons, fat, cmdline) == 0) {
@@ -280,10 +296,18 @@ void cmd_exit(struct CONSOLE *cons, int *fat)
 	struct TASK *task = task_now();
 	struct SHTCTL *shtctl = (struct SHTCTL *) *((int *)0x0fe4);
 	struct FIFO32 *fifo = (struct FIFO32 *) *((int *)0x0fec);
-	timer_cancel(cons->timer);
+	if (cons->sht != 0) {
+		timer_cancel(cons->timer);
+	}
 	memman_free_4k(memman, (int)fat, 4 * 2880);
 	io_cli();
-	fifo32_put(fifo, cons->sht - shtctl->sheets0 + 768);	/* 768乣1023 */
+	if (cons->sht != 0) {
+		fifo32_put(fifo, cons->sht - shtctl->sheets0 + 768);	/* 768乣1023 */
+
+	}
+	else {
+		fifo32_put(fifo, task - taskctl->tasks0 + 1024);
+	}
 	io_sti();
 	for (;;) {
 		task_sleep(task);
@@ -519,6 +543,20 @@ void cmd_start(struct CONSOLE *cons, char *cmdline, int memtotal)
 	sheet_slide(sht, 32, 4);
 	sheet_updown(sht, shtctl->top);
 	for (i = 6; cmdline[i] != 0; i++) { //将命令行输入的字符串逐字复制到新的命令行窗口
+		fifo32_put(fifo, cmdline[i] + 256);
+	}
+	fifo32_put(fifo, 10 + 256);	/* Enter */
+	cons_newline(cons);
+	return;
+}
+
+
+void cmd_ncst(struct CONSOLE *cons, char *cmdline, int memtotal)
+{
+	struct TASK *task = open_constask(0, memtotal); //
+	struct FIFO32 *fifo = &task->fifo;
+	int i;
+	for (i = 5; cmdline[i] != 0; i++) { //将命令行输入的字符串逐字复制到新的命令行窗口
 		fifo32_put(fifo, cmdline[i] + 256);
 	}
 	fifo32_put(fifo, 10 + 256);	/* Enter */
