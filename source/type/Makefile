@@ -1,4 +1,4 @@
-APP      = typeipl
+APP      = type
 STACK    = 1k
 MALLOC   = 0k
 

@@ -17,6 +17,7 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 	cons.cur_y = 28;
 	cons.cur_c = -1;
 	task->cons = &cons;
+	task->cmdline = cmdline;
 	//*((int *) 0x0fec) = (int) &cons;
 
 //	fifo32_init(&task->fifo, 128, fifobuf, task);
@@ -618,6 +619,20 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
 			}
 			*((char *)ebx + ds_base + i) = fh->buf[fh->pos];
 			fh->pos++;
+		}
+		reg[7] = i;
+	}
+	else if (edx == 26) {
+		i = 0;
+		for (;;) {
+			*((char *)ebx + ds_base + i) = task->cmdline[i];
+			if (task->cmdline[i] == 0) {
+				break;
+			}
+			if (i >= ecx) {
+				break;
+			}
+			i++;
 		}
 		reg[7] = i;
 	}

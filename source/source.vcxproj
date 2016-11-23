@@ -67,7 +67,7 @@
     <None Include="Makefile" />
     <None Include="noodle\Makefile" />
     <None Include="star\Makefile" />
-    <None Include="typeipl\Makefile" />
+    <None Include="type\Makefile" />
     <None Include="vOS.rul" />
     <None Include="vOS\asmhead.nas" />
     <None Include="vOS\ipl10.nas" />
@@ -92,7 +92,8 @@
     <ClCompile Include="star\star1.c" />
     <ClCompile Include="star\stars.c" />
     <ClCompile Include="star\stars2.c" />
-    <ClCompile Include="typeipl\typeipl.c" />
+    <ClCompile Include="type\type.c" />
+    <ClCompile Include="type\typeipl.c" />
     <ClCompile Include="vOS\bootpack.c" />
     <ClCompile Include="vOS\console.c" />
     <ClCompile Include="vOS\dsctbl.c" />
