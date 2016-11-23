@@ -37,6 +37,9 @@
     <Filter Include="sosu">
       <UniqueIdentifier>{80434cdd-e99a-423a-b04e-4e01e6040fdf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="typeipl">
+      <UniqueIdentifier>{ff4d99bb-bd1d-42c1-a1f7-f12b756dfaaf}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="apilib.h" />
@@ -168,6 +171,27 @@
       <Filter>walk</Filter>
     </None>
     <None Include="..\.gitignore" />
+    <None Include="apilib\alloca.nas">
+      <Filter>apilib</Filter>
+    </None>
+    <None Include="apilib\api021.nas">
+      <Filter>apilib</Filter>
+    </None>
+    <None Include="apilib\api022.nas">
+      <Filter>apilib</Filter>
+    </None>
+    <None Include="apilib\api023.nas">
+      <Filter>apilib</Filter>
+    </None>
+    <None Include="apilib\api024.nas">
+      <Filter>apilib</Filter>
+    </None>
+    <None Include="apilib\api025.nas">
+      <Filter>apilib</Filter>
+    </None>
+    <None Include="typeipl\Makefile">
+      <Filter>typeipl</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="a\a.c">
@@ -268,6 +292,9 @@
     </ClCompile>
     <ClCompile Include="sosu\Makefile">
       <Filter>sosu</Filter>
+    </ClCompile>
+    <ClCompile Include="typeipl\typeipl.c">
+      <Filter>typeipl</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

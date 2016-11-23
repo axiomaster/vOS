@@ -28,6 +28,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\.gitignore" />
+    <None Include="apilib\alloca.nas" />
     <None Include="apilib\api001.nas" />
     <None Include="apilib\api002.nas" />
     <None Include="apilib\api003.nas" />
@@ -48,6 +49,11 @@
     <None Include="apilib\api018.nas" />
     <None Include="apilib\api019.nas" />
     <None Include="apilib\api020.nas" />
+    <None Include="apilib\api021.nas" />
+    <None Include="apilib\api022.nas" />
+    <None Include="apilib\api023.nas" />
+    <None Include="apilib\api024.nas" />
+    <None Include="apilib\api025.nas" />
     <None Include="apilib\a_nask.nas" />
     <None Include="apilib\Makefile" />
     <None Include="a\Makefile" />
@@ -61,6 +67,7 @@
     <None Include="Makefile" />
     <None Include="noodle\Makefile" />
     <None Include="star\Makefile" />
+    <None Include="typeipl\Makefile" />
     <None Include="vOS.rul" />
     <None Include="vOS\asmhead.nas" />
     <None Include="vOS\ipl10.nas" />
@@ -85,6 +92,7 @@
     <ClCompile Include="star\star1.c" />
     <ClCompile Include="star\stars.c" />
     <ClCompile Include="star\stars2.c" />
+    <ClCompile Include="typeipl\typeipl.c" />
     <ClCompile Include="vOS\bootpack.c" />
     <ClCompile Include="vOS\console.c" />
     <ClCompile Include="vOS\dsctbl.c" />
