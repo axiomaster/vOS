@@ -12,7 +12,7 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 	struct CONSOLE cons;
 	char cmdline[30];
 	cons.sht = sheet;
-	cons.cur_x =  8;
+	cons.cur_x = 8;
 	cons.cur_y = 28;
 	cons.cur_c = -1;
 	task->cons = &cons;
@@ -22,7 +22,7 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 	cons.timer = timer_alloc();
 	timer_init(cons.timer, &task->fifo, 1);
 	timer_settime(cons.timer, 50);
-	file_readfat(fat, (unsigned char *) (ADR_DISKIMG + 0x000200));
+	file_readfat(fat, (unsigned char *)(ADR_DISKIMG + 0x000200));
 
 	/* 僾儘儞僾僩昞帵 */
 	cons_putchar(&cons, '>', 1);
@@ -32,7 +32,8 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 		if (fifo32_status(&task->fifo) == 0) {
 			task_sleep(task);
 			io_sti();
-		} else {
+		}
+		else {
 			i = fifo32_get(&task->fifo);
 			io_sti();
 			if (i <= 1) { /* 僇乕僜儖梡僞僀儅 */
@@ -41,7 +42,8 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 					if (cons.cur_c >= 0) {
 						cons.cur_c = COL8_FFFFFF;
 					}
-				} else {
+				}
+				else {
 					timer_init(cons.timer, &task->fifo, 1); /* 師偼1傪 */
 					if (cons.cur_c >= 0) {
 						cons.cur_c = COL8_000000;
@@ -67,7 +69,8 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 						cons_putchar(&cons, ' ', 0);
 						cons.cur_x -= 8;
 					}
-				} else if (i == 10 + 256) {
+				}
+				else if (i == 10 + 256) {
 					/* Enter */
 					/* 僇乕僜儖傪僗儁乕僗偱徚偟偰偐傜夵峴偡傞 */
 					cons_putchar(&cons, ' ', 0);
@@ -76,7 +79,8 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 					cons_runcmd(cmdline, &cons, fat, memtotal);	/* 僐儅儞僪幚峴 */
 					/* 僾儘儞僾僩昞帵 */
 					cons_putchar(&cons, '>', 1);
-				} else {
+				}
+				else {
 					/* 堦斒暥帤 */
 					if (cons.cur_x < 240) {
 						/* 堦暥帤昞帵偟偰偐傜丄僇乕僜儖傪1偮恑傔傞 */
@@ -110,11 +114,14 @@ void cons_putchar(struct CONSOLE *cons, int chr, char move)
 				break;	/* 32偱妱傝愗傟偨傜break */
 			}
 		}
-	} else if (s[0] == 0x0a) {	/* 夵峴 */
+	}
+	else if (s[0] == 0x0a) {	/* 夵峴 */
 		cons_newline(cons);
-	} else if (s[0] == 0x0d) {	/* 暅婣 */
-		/* 偲傝偁偊偢側偵傕偟側偄 */
-	} else {	/* 晛捠偺暥帤 */
+	}
+	else if (s[0] == 0x0d) {	/* 暅婣 */
+	 /* 偲傝偁偊偢側偵傕偟側偄 */
+	}
+	else {	/* 晛捠偺暥帤 */
 		putfonts8_asc_sht(cons->sht, cons->cur_x, cons->cur_y, COL8_FFFFFF, COL8_000000, s, 1);
 		if (move != 0) {
 			/* move偑0偺偲偒偼僇乕僜儖傪恑傔側偄 */
@@ -133,7 +140,8 @@ void cons_newline(struct CONSOLE *cons)
 	struct SHEET *sheet = cons->sht;
 	if (cons->cur_y < 28 + 112) {
 		cons->cur_y += 16; /* 師偺峴傊 */
-	} else {
+	}
+	else {
 		/* 僗僋儘乕儖 */
 		for (y = 28; y < 28 + 112; y++) {
 			for (x = 8; x < 8 + 240; x++) {
@@ -172,15 +180,23 @@ void cons_runcmd(char *cmdline, struct CONSOLE *cons, int *fat, unsigned int mem
 {
 	if (strcmp(cmdline, "mem") == 0) {
 		cmd_mem(cons, memtotal);
-	} else if (strcmp(cmdline, "cls") == 0) {
+	}
+	else if (strcmp(cmdline, "cls") == 0) {
 		cmd_cls(cons);
-	} else if (strcmp(cmdline, "dir") == 0) {
+	}
+	else if (strcmp(cmdline, "dir") == 0) {
 		cmd_dir(cons);
-	} else if (strncmp(cmdline, "type ", 5) == 0) {
+	}
+	else if (strncmp(cmdline, "type ", 5) == 0) {
 		cmd_type(cons, fat, cmdline);
-	} else if(strcmp(cmdline, "exit") == 0){
+	}
+	else if (strcmp(cmdline, "exit") == 0) {
 		cmd_exit(cons, fat);
-	}else if (cmdline[0] != 0) {
+	}
+	else if (strncmp(cmdline, "start ", 6) == 0) {
+		cmd_start(cons, cmdline, memtotal);
+	}
+	else if (cmdline[0] != 0) {
 		if (cmd_app(cons, fat, cmdline) == 0) {
 			/* 僐儅儞僪偱偼側偔丄傾僾儕偱傕側偔丄偝傜偵嬻峴偱傕側偄 */
 			cons_putstr0(cons, "Bad command.\n\n");
@@ -227,7 +243,7 @@ void cmd_dir(struct CONSOLE *cons)
 				for (j = 0; j < 8; j++) {
 					s[j] = finfo[i].name[j];
 				}
-				s[ 9] = finfo[i].ext[0];
+				s[9] = finfo[i].ext[0];
 				s[10] = finfo[i].ext[1];
 				s[11] = finfo[i].ext[2];
 				cons_putstr0(cons, s);
@@ -245,11 +261,12 @@ void cmd_type(struct CONSOLE *cons, int *fat, char *cmdline)
 	char *p;
 	if (finfo != 0) {
 		/* 僼傽僀儖偑尒偮偐偭偨応崌 */
-		p = (char *) memman_alloc_4k(memman, finfo->size);
-		file_loadfile(finfo->clustno, finfo->size, p, fat, (char *) (ADR_DISKIMG + 0x003e00));
+		p = (char *)memman_alloc_4k(memman, finfo->size);
+		file_loadfile(finfo->clustno, finfo->size, p, fat, (char *)(ADR_DISKIMG + 0x003e00));
 		cons_putstr1(cons, p, finfo->size);
-		memman_free_4k(memman, (int) p, finfo->size);
-	} else {
+		memman_free_4k(memman, (int)p, finfo->size);
+	}
+	else {
 		/* 僼傽僀儖偑尒偮偐傜側偐偭偨応崌 */
 		cons_putstr0(cons, "File not found.\n");
 	}
@@ -261,10 +278,10 @@ void cmd_exit(struct CONSOLE *cons, int *fat)
 {
 	struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
 	struct TASK *task = task_now();
-	struct SHTCTL *shtctl = (struct SHTCTL *) *((int *) 0x0fe4);
-	struct FIFO32 *fifo = (struct FIFO32 *) *((int *) 0x0fec);
+	struct SHTCTL *shtctl = (struct SHTCTL *) *((int *)0x0fe4);
+	struct FIFO32 *fifo = (struct FIFO32 *) *((int *)0x0fec);
 	timer_cancel(cons->timer);
-	memman_free_4k(memman, (int) fat, 4 * 2880);
+	memman_free_4k(memman, (int)fat, 4 * 2880);
 	io_cli();
 	fifo32_put(fifo, cons->sht - shtctl->sheets0 + 768);	/* 768乣1023 */
 	io_sti();
@@ -297,7 +314,7 @@ int cmd_app(struct CONSOLE *cons, int *fat, char *cmdline)
 	finfo = file_search(name, (struct FILEINFO *) (ADR_DISKIMG + 0x002600), 224);
 	if (finfo == 0 && name[i - 1] != '.') {
 		/* 尒偮偐傜側偐偭偨偺偱屻傠偵".HRB"傪偮偗偰傕偆堦搙扵偟偰傒傞 */
-		name[i    ] = '.';
+		name[i] = '.';
 		name[i + 1] = 'H';
 		name[i + 2] = 'R';
 		name[i + 3] = 'B';
@@ -307,14 +324,14 @@ int cmd_app(struct CONSOLE *cons, int *fat, char *cmdline)
 
 	if (finfo != 0) {
 		/* 僼傽僀儖偑尒偮偐偭偨応崌 */
-		p = (char *) memman_alloc_4k(memman, finfo->size);
-		file_loadfile(finfo->clustno, finfo->size, p, fat, (char *) (ADR_DISKIMG + 0x003e00));
+		p = (char *)memman_alloc_4k(memman, finfo->size);
+		file_loadfile(finfo->clustno, finfo->size, p, fat, (char *)(ADR_DISKIMG + 0x003e00));
 		if (finfo->size >= 36 && strncmp(p + 4, "Hari", 4) == 0 && *p == 0x00) {
-			segsiz = *((int *) (p + 0x0000));
-			esp    = *((int *) (p + 0x000c));
-			datsiz = *((int *) (p + 0x0010));
-			dathrb = *((int *) (p + 0x0014));
-			q = (char *) memman_alloc_4k(memman, segsiz);
+			segsiz = *((int *)(p + 0x0000));
+			esp = *((int *)(p + 0x000c));
+			datsiz = *((int *)(p + 0x0010));
+			dathrb = *((int *)(p + 0x0014));
+			q = (char *)memman_alloc_4k(memman, segsiz);
 			//*((int *) 0xfe8) = (int) q;
 			task->ds_base = q;
 			set_segmdesc(gdt + task->sel / 8 + 1000, finfo->size - 1, (int)p, AR_CODE32_ER + 0x60);
@@ -323,20 +340,21 @@ int cmd_app(struct CONSOLE *cons, int *fat, char *cmdline)
 				q[esp + i] = p[dathrb + i];
 			}
 			start_app(0x1b, task->sel + 1000 * 8, esp, task->sel + 2000 * 8, &(task->tss.esp0));
-			shtctl = (struct SHTCTL *) *((int *) 0x0fe4);
+			shtctl = (struct SHTCTL *) *((int *)0x0fe4);
 			for (i = 0; i < MAX_SHEETS; i++) {
 				sht = &(shtctl->sheets0[i]);
-				if((sht->flags&0x11)==0x11 && sht->task == task){
+				if ((sht->flags & 0x11) == 0x11 && sht->task == task) {
 					/* 傾僾儕偑奐偒偭傁側偟偵偟偨壓偠偒傪敪尒 */
 					sheet_free(sht);	/* 暵偠傞 */
 				}
 			}
 			timer_cancelall(&task->fifo);
-			memman_free_4k(memman, (int) q, segsiz);
-		} else {
+			memman_free_4k(memman, (int)q, segsiz);
+		}
+		else {
 			cons_putstr0(cons, ".hrb file format error.\n");
 		}
-		memman_free_4k(memman, (int) p, finfo->size);
+		memman_free_4k(memman, (int)p, finfo->size);
 		cons_newline(cons);
 		return 1;
 	}
@@ -351,7 +369,7 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
 	int ds_base = task->ds_base;
 	// struct CONSOLE *cons = (struct CONSOLE *) *((int *) 0x0fec); //
 	struct CONSOLE *cons = task->cons;
-	struct SHTCTL *shtctl = (struct SHTCTL *) *((int *) 0x0fe4);
+	struct SHTCTL *shtctl = (struct SHTCTL *) *((int *)0x0fe4);
 	struct SHEET *sht;
 	int *reg = &eax + 1;	/* eax偺師偺斣抧 */
 		/* 曐懚偺偨傔偺PUSHAD傪嫮堷偵彂偒姺偊傞 */
@@ -361,67 +379,82 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
 
 	if (edx == 1) {
 		cons_putchar(cons, eax & 0xff, 1);
-	} else if (edx == 2) {
-		cons_putstr0(cons, (char *) ebx + ds_base);
-	} else if (edx == 3) {
-		cons_putstr1(cons, (char *) ebx + ds_base, ecx);
-	} else if (edx == 4) {
+	}
+	else if (edx == 2) {
+		cons_putstr0(cons, (char *)ebx + ds_base);
+	}
+	else if (edx == 3) {
+		cons_putstr1(cons, (char *)ebx + ds_base, ecx);
+	}
+	else if (edx == 4) {
 		return &(task->tss.esp0);
-	} else if (edx == 5) {
+	}
+	else if (edx == 5) {
 		sht = sheet_alloc(shtctl);
 		sht->task = task;
 		sht->flags |= 0x10;
-		sheet_setbuf(sht, (char *) ebx + ds_base, esi, edi, eax);
-		make_window8((char *) ebx + ds_base, esi, edi, (char *) ecx + ds_base, 0);
+		sheet_setbuf(sht, (char *)ebx + ds_base, esi, edi, eax);
+		make_window8((char *)ebx + ds_base, esi, edi, (char *)ecx + ds_base, 0);
 		sheet_slide(sht, ((shtctl->xsize - esi) / 2) & ~3, (shtctl->ysize - edi) / 2); //图形学的困惑代聛E
 		sheet_updown(sht, shtctl->top);	//将窗口图层高度指定为鼠眮E谕疾悖蟊丒疾闵弦?
-		reg[7] = (int) sht;
-	} else if (edx == 6) {
+		reg[7] = (int)sht;
+	}
+	else if (edx == 6) {
 		sht = (struct SHEET *) (ebx & 0xfffffffe);
-		putfonts8_asc(sht->buf, sht->bxsize, esi, edi, eax, (char *) ebp + ds_base);
+		putfonts8_asc(sht->buf, sht->bxsize, esi, edi, eax, (char *)ebp + ds_base);
 		if ((ebx & 1) == 0) {
 			sheet_refresh(sht, esi, edi, esi + ecx * 8, edi + 16);
 		}
-	} else if (edx == 7) {
+	}
+	else if (edx == 7) {
 		sht = (struct SHEET *) (ebx & 0xfffffffe);
 		boxfill8(sht->buf, sht->bxsize, ebp, eax, ecx, esi, edi);
 		if ((ebx & 1) == 0) {
 			sheet_refresh(sht, eax, ecx, esi + 1, edi + 1);
 		}
-	} else if (edx == 8) {
+	}
+	else if (edx == 8) {
 		memman_init((struct MEMMAN *) (ebx + ds_base));
 		ecx &= 0xfffffff0;	/* 16僶僀僩扨埵偵 */
 		memman_free((struct MEMMAN *) (ebx + ds_base), eax, ecx);
-	} else if (edx == 9) {
+	}
+	else if (edx == 9) {
 		ecx = (ecx + 0x0f) & 0xfffffff0; /* 16僶僀僩扨埵偵愗傝忋偘 */
 		reg[7] = memman_alloc((struct MEMMAN *) (ebx + ds_base), ecx);
-	} else if (edx == 10) {
+	}
+	else if (edx == 10) {
 		ecx = (ecx + 0x0f) & 0xfffffff0; /* 16僶僀僩扨埵偵愗傝忋偘 */
 		memman_free((struct MEMMAN *) (ebx + ds_base), eax, ecx);
-	} else if (edx == 11) {
+	}
+	else if (edx == 11) {
 		sht = (struct SHEET *) (ebx & 0xfffffffe);
 		sht->buf[sht->bxsize * edi + esi] = eax;
 		if ((ebx & 1) == 0) {
 			sheet_refresh(sht, esi, edi, esi + 1, edi + 1);
 		}
-	} else if (edx == 12) {
+	}
+	else if (edx == 12) {
 		sht = (struct SHEET *) ebx;
 		sheet_refresh(sht, eax, ecx, esi, edi);
-	} else if (edx == 13) {
+	}
+	else if (edx == 13) {
 		sht = (struct SHEET *) (ebx & 0xfffffffe);
 		hrb_api_linewin(sht, eax, ecx, esi, edi, ebp);
 		if ((ebx & 1) == 0) {
 			sheet_refresh(sht, eax, ecx, esi + 1, edi + 1);
 		}
-	} else if (edx == 14) {
+	}
+	else if (edx == 14) {
 		sheet_free((struct SHEET *) ebx);
-	} else if (edx == 15) {
+	}
+	else if (edx == 15) {
 		for (;;) {
 			io_cli();
 			if (fifo32_status(&task->fifo) == 0) {
 				if (eax != 0) {
 					task_sleep(task);	/* FIFO偑嬻側偺偱怮偰懸偮 */
-				} else {
+				}
+				else {
 					io_sti();
 					reg[7] = -1;
 					return 0;
@@ -476,6 +509,23 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
 	return 0;
 }
 
+
+void cmd_start(struct CONSOLE *cons, char *cmdline, int memtotal)
+{
+	struct SHTCTL *shtctl = (struct SHTCTL *) *((int *)0x0fe4);
+	struct SHEET *sht = open_console(shtctl, memtotal);
+	struct FIFO32 *fifo = &sht->task->fifo;
+	int i;
+	sheet_slide(sht, 32, 4);
+	sheet_updown(sht, shtctl->top);
+	for (i = 6; cmdline[i] != 0; i++) { //将命令行输入的字符串逐字复制到新的命令行窗口
+		fifo32_put(fifo, cmdline[i] + 256);
+	}
+	fifo32_put(fifo, 10 + 256);	/* Enter */
+	cons_newline(cons);
+	return;
+}
+
 int *inthandler0c(int *esp)
 {
 	//struct CONSOLE *cons = (struct CONSOLE *) *((int *) 0x0fec);
@@ -490,7 +540,7 @@ int *inthandler0c(int *esp)
 
 int *inthandler0d(int *esp)
 {
-//	struct CONSOLE *cons = (struct CONSOLE *) *((int *) 0x0fec);
+	//	struct CONSOLE *cons = (struct CONSOLE *) *((int *) 0x0fec);
 	struct TASK *task = task_now();
 	struct CONSOLE *cons = task->cons;
 	char s[30];
@@ -509,33 +559,38 @@ void hrb_api_linewin(struct SHEET *sht, int x0, int y0, int x1, int y1, int col)
 	x = x0 << 10;
 	y = y0 << 10;
 	if (dx < 0) {
-		dx = - dx;
+		dx = -dx;
 	}
 	if (dy < 0) {
-		dy = - dy;
+		dy = -dy;
 	}
 	if (dx >= dy) {
 		len = dx + 1;
 		if (x0 > x1) {
 			dx = -1024;
-		} else {
-			dx =  1024;
+		}
+		else {
+			dx = 1024;
 		}
 		if (y0 <= y1) {
 			dy = ((y1 - y0 + 1) << 10) / len;
-		} else {
+		}
+		else {
 			dy = ((y1 - y0 - 1) << 10) / len;
 		}
-	} else {
+	}
+	else {
 		len = dy + 1;
 		if (y0 > y1) {
 			dy = -1024;
-		} else {
-			dy =  1024;
+		}
+		else {
+			dy = 1024;
 		}
 		if (x0 <= x1) {
 			dx = ((x1 - x0 + 1) << 10) / len;
-		} else {
+		}
+		else {
 			dx = ((x1 - x0 - 1) << 10) / len;
 		}
 	}
