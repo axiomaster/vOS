@@ -88,19 +88,6 @@ void HariMain(void)
 	//sht_cons[0] = open_console(shtctl, memtotal);
 	//sht_cons[1] = 0; //未打开状态
 
-
-	/* sht_win */
-	//sht_win = sheet_alloc(shtctl);
-	//buf_win = (unsigned char *)memman_alloc_4k(memman, 160 * 52);
-	//sheet_setbuf(sht_win, buf_win, 144, 52, -1); /* 摟柧怓側偟 */
-	//make_window8(buf_win, 144, 52, "task_a", 1);
-	//make_textbox8(sht_win, 8, 28, 128, 16, COL8_FFFFFF);
-	//cursor_x = 8;
-	//cursor_c = COL8_FFFFFF;
-	//timer = timer_alloc();
-	//timer_init(timer, &fifo, 1);
-	//timer_settime(timer, 50);
-
 	/* sht_mouse */
 	sht_mouse = sheet_alloc(shtctl);
 	sheet_setbuf(sht_mouse, buf_mouse, 16, 16, 99);
@@ -231,9 +218,6 @@ void HariMain(void)
 					}
 				}
 				if (i == 256 + 0x3c && key_shift != 0) {	/* Shift+F2 */
-					//sht_cons[1] = open_console(shtctl, memtotal);
-					//sheet_slide(sht_cons[1], 32, 4);
-					//sheet_updown(sht_cons[1], shtctl->top);
 					//自动将焦点切入新打开的命令行窗口
 					if (key_win != 0) {
 						keywin_off(key_win);
@@ -254,11 +238,6 @@ void HariMain(void)
 					wait_KBC_sendready();
 					io_out8(PORT_KEYDAT, keycmd_wait);
 				}
-				/* 僇乕僜儖偺嵞昞帵 */
-				//if (cursor_c >= 0) {
-				//	boxfill8(sht_win->buf, sht_win->bxsize, cursor_c, cursor_x, 28, cursor_x + 7, 43);
-				//}
-				//sheet_refresh(sht_win, cursor_x, 28, cursor_x + 8, 44);
 			}
 			else if (512 <= i && i <= 767) {  //鼠标
 				if (mouse_decode(&mdec, i - 512) != 0) {
@@ -310,6 +289,12 @@ void HariMain(void)
 												io_cli();
 												task_cons[0]->tss.eax = (int) &(task->tss.esp0);
 												task_cons[0]->tss.eip = (int)asm_end_app;
+												io_sti();
+											}
+											else {
+												task = sht->task;
+												io_cli();
+												fifo32_put(&task->fifo, 4);
 												io_sti();
 											}
 										}

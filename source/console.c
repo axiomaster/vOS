@@ -56,6 +56,9 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 				boxfill8(sheet->buf, sheet->bxsize, COL8_000000, cons.cur_x, cons.cur_y, cons.cur_x + 7, cons.cur_y + 15);
 				cons.cur_c = -1;
 			}
+			if (i == 4) {
+				cmd_exit(&cons, fat); //
+			}
 			if (256 <= i && i <= 511) { /* キーボードデータ（タスクA経由） */
 				if (i == 8 + 256) {
 					/* バックスペース */
@@ -371,7 +374,7 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
 		sheet_setbuf(sht, (char *) ebx + ds_base, esi, edi, eax);
 		make_window8((char *) ebx + ds_base, esi, edi, (char *) ecx + ds_base, 0);
 		sheet_slide(sht, ((shtctl->xsize - esi) / 2) & ~3, (shtctl->ysize - edi) / 2); //ﾍｼﾐﾎﾑｧｵﾄﾀｧｻ惲・
-		sheet_updown(sht, shtctl->top);	//ｽｫｴｰｿﾚﾍｼｲ羣ﾟｶﾈﾖｸｶｨﾎｪﾊ・ﾚﾍｼｲ罐ｬﾊ・ｼｲ翹ﾏﾒﾆ
+		sheet_updown(sht, shtctl->top);	//ｽｫｴｰｿﾚﾍｼｲ羣ﾟｶﾈﾖｸｶｨﾎｪﾊ・ﾚﾍｼｲ罐ｬﾊ・ｼｲ翹ﾏﾒ?
 		reg[7] = (int) sht;
 	} else if (edx == 6) {
 		sht = (struct SHEET *) (ebx & 0xfffffffe);
