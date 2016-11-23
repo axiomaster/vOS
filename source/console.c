@@ -19,7 +19,7 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 	//*((int *) 0x0fec) = (int) &cons;
 
 //	fifo32_init(&task->fifo, 128, fifobuf, task);
-	if (sheet != 0) {
+	if (cons.sht != 0) {
 		cons.timer = timer_alloc();
 		timer_init(cons.timer, &task->fifo, 1);
 		timer_settime(cons.timer, 50);
@@ -38,7 +38,7 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 		else {
 			i = fifo32_get(&task->fifo);
 			io_sti();
-			if (i <= 1) { /* 僇乕僜儖梡僞僀儅 */
+			if (i <= 1 && cons.sht != 0) { //光标用定时器
 				if (i != 0) {
 					timer_init(cons.timer, &task->fifo, 0); /* 師偼0傪 */
 					if (cons.cur_c >= 0) {
@@ -57,7 +57,9 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 				cons.cur_c = COL8_FFFFFF;
 			}
 			if (i == 3) {	/* 僇乕僜儖OFF */
-				boxfill8(sheet->buf, sheet->bxsize, COL8_000000, cons.cur_x, cons.cur_y, cons.cur_x + 7, cons.cur_y + 15);
+				if (cons.sht != 0) {
+					boxfill8(cons.sht->buf, cons.sht->bxsize, COL8_000000, cons.cur_x, cons.cur_y, cons.cur_x + 7, cons.cur_y + 15);
+				}
 				cons.cur_c = -1;
 			}
 			if (i == 4) {
@@ -79,10 +81,10 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 					cmdline[cons.cur_x / 8 - 2] = 0;
 					cons_newline(&cons);
 					cons_runcmd(cmdline, &cons, fat, memtotal);	/* 僐儅儞僪幚峴 */
-					if (sheet == 0) {
+					if (cons.sht == 0) {
 						cmd_exit(&cons, fat);
 					}
-																/* 僾儘儞僾僩昞帵 */
+					/* 僾儘儞僾僩昞帵 */
 					cons_putchar(&cons, '>', 1);
 				}
 				else {
@@ -94,12 +96,12 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
 					}
 				}
 			}
-			/* 僇乕僜儖嵞昞帵 */
-			if (sheet != 0) {
+			//重新显示光标
+			if (cons.sht != 0) {
 				if (cons.cur_c >= 0) {
-					boxfill8(sheet->buf, sheet->bxsize, cons.cur_c, cons.cur_x, cons.cur_y, cons.cur_x + 7, cons.cur_y + 15);
+					boxfill8(cons.sht->buf, cons.sht->bxsize, cons.cur_c, cons.cur_x, cons.cur_y, cons.cur_x + 7, cons.cur_y + 15);
 				}
-				sheet_refresh(sheet, cons.cur_x, cons.cur_y, cons.cur_x + 8, cons.cur_y + 16);
+				sheet_refresh(cons.sht, cons.cur_x, cons.cur_y, cons.cur_x + 8, cons.cur_y + 16);
 			}
 		}
 	}
@@ -395,6 +397,7 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
 	struct CONSOLE *cons = task->cons;
 	struct SHTCTL *shtctl = (struct SHTCTL *) *((int *)0x0fe4);
 	struct SHEET *sht;
+	struct FIFO32 *sys_fifo = (struct FIFO32 *) *((int *)0x0fec);
 	int *reg = &eax + 1;	/* eax偺師偺斣抧 */
 		/* 曐懚偺偨傔偺PUSHAD傪嫮堷偵彂偒姺偊傞 */
 		/* reg[0] : EDI,   reg[1] : ESI,   reg[2] : EBP,   reg[3] : ESP */
@@ -496,6 +499,13 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
 			}
 			if (i == 3) {	/* 僇乕僜儖OFF */
 				cons->cur_c = -1;
+			}
+			if (i == 4) { //只关闭命令行窗口
+				timer_cancel(cons->timer);
+				io_cli();
+				fifo32_put(sys_fifo, cons->sht - shtctl->sheets0 + 2024);
+				cons->sht = 0;
+				io_sti();
 			}
 			if (i >= 256) {
 				reg[7] = i - 256;
