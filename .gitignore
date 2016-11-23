@@ -7,6 +7,11 @@
 *.map
 *.hrb
 *.user
+*.vcxproj
+*.filters
+*.sln
+*.db
+*.opendb
 .idea
 .vs
 projects

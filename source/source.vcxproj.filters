@@ -34,6 +34,9 @@
     <Filter Include="walk">
       <UniqueIdentifier>{b6c5eb9e-0616-43f5-9811-614ca8797f53}</UniqueIdentifier>
     </Filter>
+    <Filter Include="sosu">
+      <UniqueIdentifier>{80434cdd-e99a-423a-b04e-4e01e6040fdf}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="apilib.h" />
@@ -259,6 +262,12 @@
     </ClCompile>
     <ClCompile Include="walk\walk.c">
       <Filter>walk</Filter>
+    </ClCompile>
+    <ClCompile Include="sosu\sosu.c">
+      <Filter>sosu</Filter>
+    </ClCompile>
+    <ClCompile Include="sosu\Makefile">
+      <Filter>sosu</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

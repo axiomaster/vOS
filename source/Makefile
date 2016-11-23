@@ -19,7 +19,7 @@ vOS.img : vOS/ipl10.bin vOS/vOS.sys Makefile \
 		winhelo/winhelo.hrb \
 		star/stars.hrb \
 		lines/lines.hrb walk/walk.hrb noodle/noodle.hrb \
-		beep/beepdown.hrb color/color2.hrb
+		beep/beepdown.hrb color/color2.hrb sosu/sosu.hrb
 	$(EDIMG)   imgin:../z_tools/fdimg0at.tek \
 		wbinimg src:vOS/ipl10.bin len:512 from:0 to:0 \
 		copy from:vOS/vOS.sys to:@: \
@@ -34,6 +34,7 @@ vOS.img : vOS/ipl10.bin vOS/vOS.sys Makefile \
 		copy from:noodle/noodle.hrb to:@: \
 		copy from:beep/beepdown.hrb to:@: \
 		copy from:color/color2.hrb to:@: \
+		copy from:sosu/sosu.hrb to:@: \
 		imgout:vOS.img
 
 # コマンド

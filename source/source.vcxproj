@@ -80,6 +80,8 @@
     <ClCompile Include="lines\lines.c" />
     <ClCompile Include="noodle\noodle.c" />
     <ClCompile Include="noodle\noodle1.c" />
+    <ClCompile Include="sosu\Makefile" />
+    <ClCompile Include="sosu\sosu.c" />
     <ClCompile Include="star\star1.c" />
     <ClCompile Include="star\stars.c" />
     <ClCompile Include="star\stars2.c" />
