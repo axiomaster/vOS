@@ -23,7 +23,7 @@ void HariMain(void)
 	struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
 
 	unsigned char *buf_back, buf_mouse[256], *buf_cons[2]; //多个console
-	struct SHEET *sht_back, *sht_mouse, *sht_win, *sht_cons[2];
+	struct SHEET *sht_back, *sht_mouse, *sht_win; // , *sht_cons[2];
 	struct TASK *task_a, *task_cons[2], *task; //
 	// struct TIMER *timer;
 	static char keytable0[0x80] = {
@@ -81,8 +81,9 @@ void HariMain(void)
 	init_screen8(buf_back, binfo->scrnx, binfo->scrny);
 
 	/* sht_cons */
-	sht_cons[0] = open_console(shtctl, memtotal);
-	sht_cons[1] = 0; //未打开状态
+	key_win = open_console(shtctl, memtotal);
+	//sht_cons[0] = open_console(shtctl, memtotal);
+	//sht_cons[1] = 0; //未打开状态
 
 
 	/* sht_win */
@@ -105,16 +106,15 @@ void HariMain(void)
 	my = (binfo->scrny - 28 - 16) / 2;
 
 	sheet_slide(sht_back, 0, 0);
-	sheet_slide(sht_cons[0], 300, 200); //console 1
+	sheet_slide(key_win, 300, 200); //console 1
 //	sheet_slide(sht_cons[1], 8, 4);  //console 2
 //	sheet_slide(sht_win, 64, 56);
 	sheet_slide(sht_mouse, mx, my);
 	sheet_updown(sht_back, 0);
-	sheet_updown(sht_cons[0], 1);
+	sheet_updown(key_win, 1);
 //	sheet_updown(sht_cons[1], 2);
 //	sheet_updown(sht_win, 3);
 	sheet_updown(sht_mouse, 2);
-	key_win = sht_cons[0];
 	keywin_on(key_win);
 
 	/* 嵟弶偵僉乕儃乕僪忬懺偲偺怘偄堘偄偑側偄傛偆偵丄愝掕偟偰偍偔偙偲偵偡傞 */
@@ -253,13 +253,15 @@ void HariMain(void)
 						io_sti();
 					}
 				}
-				if (i == 256 + 0x3c && key_shift != 0 && sht_cons[1] == 0) {	/* Shift+F2 */
-					sht_cons[1] = open_console(shtctl, memtotal);
-					sheet_slide(sht_cons[1], 32, 4);
-					sheet_updown(sht_cons[1], shtctl->top);
+				if (i == 256 + 0x3c && key_shift != 0) {	/* Shift+F2 */
+					//sht_cons[1] = open_console(shtctl, memtotal);
+					//sheet_slide(sht_cons[1], 32, 4);
+					//sheet_updown(sht_cons[1], shtctl->top);
 					//自动将焦点切入新打开的命令行窗口
 					keywin_off(key_win);
-					key_win = sht_cons[1];
+					key_win = open_console(shtctl, memtotal);
+					sheet_slide(key_win, 32, 4);
+					sheet_updown(key_win, shtctl->top);
 					keywin_on(key_win);
 				}
 				if (i == 256 + 0x57) { //F11
