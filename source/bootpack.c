@@ -47,7 +47,7 @@ void HariMain(void)
 	};
 	int key_to = 0, key_shift = 0, key_leds = (binfo->leds >> 4) & 7, keycmd_wait = -1;
 	struct CONSOLE *cons;
-	int j, x, y, mmx = -1, mmy = -1;
+	int j, x, y, mmx = -1, mmy = -1, mmx2 = 0; //
 	struct SHEET *sht = 0, *key_win;
 
 	init_gdtidt();
@@ -314,6 +314,7 @@ void HariMain(void)
 										if (3 <= x&&x < sht->bxsize - 3 && 3 <= y&&y < 21) {
 											mmx = mx;
 											mmy = my;
+											mmx2 = sht->vx0;
 										}
 										if (sht->bxsize - 21 <= x&&x < sht->bxsize - 5 && 5 <= y&&y < 19) { //µã»÷Î»ÖÃ x
 											if ((sht->flags & 0x10) != 0) {
@@ -334,8 +335,9 @@ void HariMain(void)
 						else {
 							x = mx - mmx;
 							y = my - mmy;
-							sheet_slide(sht, sht->vx0 + x, sht->vy0 + y);
-							mmx = mx;
+							sheet_slide(sht, (mmx2 + x + 2)&~3, sht->vy0 + y);
+							//sheet_slide(sht, sht->vx0 + x, sht->vy0 + y);
+							//mmx = mx;
 							mmy = my;
 						}
 					}
