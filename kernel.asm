@@ -4,6 +4,8 @@
 ; [root@XXX XXX]# ld -s -Ttext 0x30400 -o kernel.bin kernel.o
 ; [root@XXX XXX]#
 
+
+
 [section .text]                      ; 代码在此
 
 global _start                        ; 导出 _start

@@ -16,6 +16,7 @@
 .vs
 *.img
 *.txt
+idea
 projects
 z_tools
 main.cpp
