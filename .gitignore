@@ -12,6 +12,7 @@
 *.sln
 *.db
 *.opendb
+*.o
 .idea
 .vs
 *.img
@@ -27,3 +28,5 @@ source/bootpack.nas
 source/bootpack.hrb
 source/vOS.img
 source/vOS.sys
+kernel/*.o
+lib/*.o

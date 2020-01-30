@@ -1,0 +1,1 @@
+void *memcpy(void *p_dst, void *p_str, int size);
