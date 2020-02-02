@@ -13,3 +13,5 @@ OS学习笔记，或者OS读书笔记。
 - 文件系统
 
 - 内存管理
+
+![图床测试](https://raw.githubusercontent.com/axiomaster/imgs/master/aaa.jpg)
