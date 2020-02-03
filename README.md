@@ -4,14 +4,18 @@ OS学习笔记，或者OS读书笔记。
 
 章节划分如下：
 
-- 从上电到引导扇区
+- PART I
 
-- 从引导扇区到内核代码执行
+  - 从上电到引导扇区
 
-- 进程
+- PART II
 
-- 文件系统
+  - 从引导扇区到内核代码执行
 
-- 内存管理
+- PART III
 
-![图床测试](https://raw.githubusercontent.com/axiomaster/imgs/master/aaa.jpg)
+  - 进程
+
+  - 文件系统
+
+  - 内存管理
