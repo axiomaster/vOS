@@ -81,6 +81,8 @@ dw 0xaa55             ; 结束标志
 
 #### 运行bootsec样例
 
+工具安装及使用可以参考附录中内容。
+
 - 编译代码
 
 使用如下命令将以上汇编代码编译为二进制
@@ -89,9 +91,11 @@ dw 0xaa55             ; 结束标志
 nasm boot.asm -o boot.bin
 ```
 
-- 将二进制写入软盘
+- 使用bximage制作软盘镜像文件。
 
-可以先用bximage制作一个软盘镜像文件。
+![bximage](../imgs/chap1/bximage.png)
+
+- 将二进制写入软盘
 
 ```bash
 dd if=boot.bin of=a.img bs=512 count=1 conv=notrunc
@@ -99,7 +103,11 @@ dd if=boot.bin of=a.img bs=512 count=1 conv=notrunc
 
 - 使用bochs运行bootsec
 
-可以参考附录中的bochs中的使用方法。
+输入bochs启动虚拟机，然后在终端中输入c继续运行虚拟机，之后就可以看到如下画面了。
+
+![bochs](../imgs/chap1/bochs1.png)
+
+![bochs](../imgs/chap1/bochs2.png)
 
 ## 参考资料
 
