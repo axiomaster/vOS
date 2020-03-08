@@ -4,7 +4,9 @@
 
 ## Part I
 
-* [第一章](chap1/chap1.md)
+* [第一章 从上电到引导扇区](chap1/chap1.md)
+
+* [第二章 读取软盘内容](chap2/chap2.md)
 
 ## Part II
 
