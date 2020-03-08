@@ -9,4 +9,4 @@
 ![floppy](../imgs/chap2/floppy.png)
 *上图来自《30天自制操作系统》*
 
-## 读取软盘数据
+## 修改bootsec
